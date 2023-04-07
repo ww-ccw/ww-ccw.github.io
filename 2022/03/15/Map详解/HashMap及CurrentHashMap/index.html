@@ -19,21 +19,21 @@
     <meta name="description" content="分析HashMap及CurrentHashMap源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HashMap及CurrentHashMap详解">
-<meta property="og:url" content="https://ww-ccw.github.io/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/index.html">
+<meta property="og:url" content="https://ww-ccw.github.io/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/index.html">
 <meta property="og:site_name" content="CHW的博客">
 <meta property="og:description" content="分析HashMap及CurrentHashMap源码">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://ww-ccw.github.io/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyYWQ5OWNmNTRiN2RkNDI2NjIzMDE1ODY3NDI1ODUucG5n">
-<meta property="og:image" content="https://ww-ccw.github.io/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMzkyNTZmOTVhOGFiMjEzNTcxMDE1ODcwNTIxNjgucG5n">
-<meta property="og:image" content="https://ww-ccw.github.io/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/20180920225826285">
-<meta property="og:image" content="https://ww-ccw.github.io/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMTY1MGYwYjMzMzFmMTBlNWFlMDE1ODczNTQwNDgucG5n">
-<meta property="article:published_time" content="2023-03-14T16:00:00.000Z">
-<meta property="article:modified_time" content="2023-04-07T02:42:58.657Z">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyYWQ5OWNmNTRiN2RkNDI2NjIzMDE1ODY3NDI1ODUucG5n">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMzkyNTZmOTVhOGFiMjEzNTcxMDE1ODcwNTIxNjgucG5n">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/20180920225826285">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMTY1MGYwYjMzMzFmMTBlNWFlMDE1ODczNTQwNDgucG5n">
+<meta property="article:published_time" content="2022-03-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-04-07T02:45:37.329Z">
 <meta property="article:author" content="chw">
 <meta property="article:tag" content="面试">
 <meta property="article:tag" content="源码">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://ww-ccw.github.io/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyYWQ5OWNmNTRiN2RkNDI2NjIzMDE1ODY3NDI1ODUucG5n">
+<meta name="twitter:image" content="https://ww-ccw.github.io/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyYWQ5OWNmNTRiN2RkNDI2NjIzMDE1ODY3NDI1ODUucG5n">
   
   
   
@@ -229,8 +229,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-03-15 00:00" pubdate>
-          2023年3月15日 凌晨
+        <time datetime="2022-03-15 00:00" pubdate>
+          2022年3月15日 凌晨
         </time>
       </span>
     
@@ -295,7 +295,7 @@
             
               <div class="markdown-body">
                 
-                <h2 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p><img src="/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyYWQ5OWNmNTRiN2RkNDI2NjIzMDE1ODY3NDI1ODUucG5n" srcset="/img/loading.gif" lazyload alt="hashmap在1.8"></p>
+                <h2 id="HashMap"><a href="#HashMap" class="headerlink" title="HashMap"></a>HashMap</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p><img src="/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyYWQ5OWNmNTRiN2RkNDI2NjIzMDE1ODY3NDI1ODUucG5n" srcset="/img/loading.gif" lazyload alt="hashmap在1.8"></p>
 <p>hashmap中基础架构</p>
 <div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span>
 <span class="hljs-comment">* HashMap被改变的次数，由于HashMap非线程安全，在对HashMap进行迭代时，</span>
@@ -667,7 +667,7 @@
 <h4 id="为什么转回链表节点是用的6而不是复用8？"><a href="#为什么转回链表节点是用的6而不是复用8？" class="headerlink" title="为什么转回链表节点是用的6而不是复用8？"></a>为什么转回链表节点是用的6而不是复用8？</h4><p>如果我们设置节点多于8个转红黑树，少于8个就马上转链表，当节点个数在8徘徊时，就会频繁进行红黑树和链表的转换，造成性能的损耗。</p>
 <h4 id="HashMap-的初始容量是多少？"><a href="#HashMap-的初始容量是多少？" class="headerlink" title="HashMap 的初始容量是多少？"></a>HashMap 的初始容量是多少？</h4><p>默认初始容量是16。HashMap 的容量必须是2的N次方，HashMap 会根据我们传入的容量计算一个大于等于该容量的最小的2的N次方，例如传 9，容量为16。</p>
 <h4 id="介绍一下死循环问题"><a href="#介绍一下死循环问题" class="headerlink" title="介绍一下死循环问题"></a>介绍一下死循环问题</h4><p>导致死循环的根本原因是 JDK 1.7 扩容采用的是“头插法”，会导致同一索引位置的节点在扩容后顺序反掉。而 JDK 1.8 之后采用的是“尾插法”，扩容后节点顺序不会反掉，不存在死循环问题。</p>
-<h2 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h2><h3 id="JDK1-7"><a href="#JDK1-7" class="headerlink" title="JDK1.7"></a>JDK1.7</h3><h4 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h4><p><img src="/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMzkyNTZmOTVhOGFiMjEzNTcxMDE1ODcwNTIxNjgucG5n" srcset="/img/loading.gif" lazyload alt="JDK7的ConcurrentHashMap"></p>
+<h2 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h2><h3 id="JDK1-7"><a href="#JDK1-7" class="headerlink" title="JDK1.7"></a>JDK1.7</h3><h4 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h4><p><img src="/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMzkyNTZmOTVhOGFiMjEzNTcxMDE1ODcwNTIxNjgucG5n" srcset="/img/loading.gif" lazyload alt="JDK7的ConcurrentHashMap"></p>
 <p>从整体来看，它是一个由 Segment 组成的数组。然后，每个 Segment 里边是由 HashEntry 组成的数组，每个 HashEntry之间又可以形成链表。我们可以把每个 Segment 看成是一个小的 HashMap，其内部结构和 HashMap 是一模一样的。ConcurrentHashMap的segment一经创建数量就不会再改变。</p>
 <p>ReentrantLock+CAS+分段思想来保证的并发安全的，ConcurrentHashMap的put方法会通过CAS的方式，把一个Segment对象存到Segment数组中，一个Segment内部存在一个HashEntry数组，相当于分段的HashMap，Segment继承了ReentrantLock，每段put开始会加锁。故而称之为分段锁。</p>
 <h4 id="Put（）"><a href="#Put（）" class="headerlink" title="Put（）"></a>Put（）</h4><ol>
@@ -679,7 +679,7 @@
 <h4 id="扩容"><a href="#扩容" class="headerlink" title="扩容"></a>扩容</h4><p>当 put 方法时，发现元素个数超过了阈值，则会扩容。需要注意的是，每个Segment只管它自己的扩容，互相之间并不影响。换句话说，可以出现这个 Segment的长度为2，另一个Segment的长度为4的情况（只要是2的n次幂）。</p>
 <p>JDK7中的ConcurrentHashMap和JDK7的HashMap的扩容是不太一样的，首先JDK7中也是支持多线程扩容的，原因是，JDK7中的ConcurrentHashMap分段了，每一段叫做Segment对象，每个Segment对象相当于一个HashMap，分段之后，对于ConcurrentHashMap而言，能同时支持多个线程进行操作，前提是这些操作的是不同的Segment，而ConcurrentHashMap中的扩容是仅限于本Segment，也就是对应的小型HashMap进行扩容，所以是可以多线程扩容的。</p>
 <p>每个Segment内部的扩容逻辑和HashMap中一样。</p>
-<h3 id="JDK8"><a href="#JDK8" class="headerlink" title="JDK8"></a>JDK8</h3><h4 id="简介-2"><a href="#简介-2" class="headerlink" title="简介"></a>简介</h4><p><img src="/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/20180920225826285" srcset="/img/loading.gif" lazyload alt="JDK8 ConcurrentHashMap"></p>
+<h3 id="JDK8"><a href="#JDK8" class="headerlink" title="JDK8"></a>JDK8</h3><h4 id="简介-2"><a href="#简介-2" class="headerlink" title="简介"></a>简介</h4><p><img src="/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/20180920225826285" srcset="/img/loading.gif" lazyload alt="JDK8 ConcurrentHashMap"></p>
 <p>JDK 1.8 的 CHM（ConcurrentHashMap） 实现，完全重构了 1.7 。<strong>不再有 Segment 的概念</strong>，只是为了兼容 1.7 才申明了一下，并没有用到。因此，<strong>不再使用分段锁，而是给数组中的每一个头节点</strong>（为了方便，以后都叫桶）都加锁，<strong>锁的粒度降低了</strong>。并且，用的是 Synchronized 锁。</p>
 <p>JDK8中使用synchronized加锁时，是对链表头结点和红黑树根结点来加锁的，而ConcurrentHashMap会保证，数组中某个位置的元素一定是链表的头结点或红黑树的根结点，所以JDK8中的ConcurrentHashMap在对某个桶进行并发安全控制时，只需要使用synchronized对当前那个位置的数组上的元素进行加锁即可，对于每个桶，只有获取到了第一个元素上的锁，才能操作这个桶，不管这个桶是一个链表还是红黑树。</p>
 <h4 id="基本属性"><a href="#基本属性" class="headerlink" title="基本属性"></a>基本属性</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">//  扩容用  计算扩容生成一个标识戳</span>
@@ -831,7 +831,7 @@
 </code></pre></div>
 
 <h4 id="transfer-方法"><a href="#transfer-方法" class="headerlink" title="transfer()方法"></a>transfer()方法</h4><p>扩容方法</p>
-<p><img src="/2023/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMTY1MGYwYjMzMzFmMTBlNWFlMDE1ODczNTQwNDgucG5n" srcset="/img/loading.gif" lazyload alt="其他线程帮助扩容"></p>
+<p><img src="/2022/03/15/Map%E8%AF%A6%E8%A7%A3/HashMap%E5%8F%8ACurrentHashMap/aHR0cHM6Ly9ncmFwaC5iYWlkdS5jb20vcmVzb3VyY2UvMjIyMTY1MGYwYjMzMzFmMTBlNWFlMDE1ODczNTQwNDgucG5n" srcset="/img/loading.gif" lazyload alt="其他线程帮助扩容"></p>
 <p>为了方便，上边以原数组长度 8 为例。在元素迁移的时候，所有线程都遵循从后向前推进的规则，即如图A线程是第一个进来的线程，会从下标为7的位置，开始迁移数据。</p>
 <p>而且当前线程迁移时会确定一个范围，限定它此次迁移的数据范围，如图 A 线程只能迁移 bound&#x3D;6到 i&#x3D;7 这两个数据。</p>
 <p>此时，其它线程就不能迁移这部分数据了，只能继续向前推进，寻找其它可以迁移的数据范围，且每次推进的步长为固定值 stride（此处假设为2）。如图中 B线程发现 A 线程正在迁移6,7的数据，因此只能向前寻找，然后迁移 bound&#x3D;4 到 i&#x3D;5 的这两个数据。</p>
@@ -1108,7 +1108,7 @@
   <div class="license-box my-3">
     <div class="license-title">
       <div>HashMap及CurrentHashMap详解</div>
-      <div>https://ww-ccw.github.io/2023/03/15/Map详解/HashMap及CurrentHashMap/</div>
+      <div>https://ww-ccw.github.io/2022/03/15/Map详解/HashMap及CurrentHashMap/</div>
     </div>
     <div class="license-meta">
       
@@ -1120,7 +1120,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年3月15日</div>
+          <div>2022年3月15日</div>
         </div>
       
       
@@ -1152,15 +1152,15 @@
                   <article class="post-prev col-6">
                     
                     
+                      <a href="/2022/06/05/vue/vue2/" title="Vue2的学习笔记">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Vue2的学习笔记</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
                   </article>
                   <article class="post-next col-6">
                     
-                    
-                      <a href="/2022/06/05/vue/vue2/" title="Vue2的学习笔记">
-                        <span class="hidden-mobile">Vue2的学习笔记</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
                     
                   </article>
                 </div>
