@@ -5,8 +5,8 @@
   
   <entry>
     <title>浅析锁机制</title>
-    <link href="/2022/11/05/juc/%E9%94%81/Synchronized%E5%92%8CReentrantReadWriteLock%20/"/>
-    <url>/2022/11/05/juc/%E9%94%81/Synchronized%E5%92%8CReentrantReadWriteLock%20/</url>
+    <link href="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock%20/"/>
+    <url>/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock%20/</url>
     
     <content type="html"><![CDATA[<h1 id="锁详解"><a href="#锁详解" class="headerlink" title="锁详解"></a>锁详解</h1><h2 id="Synchronized-升级"><a href="#Synchronized-升级" class="headerlink" title="Synchronized 升级"></a>Synchronized 升级</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Synchronized 是Java内置锁。在Java中每个对象中都隐藏着一把锁，而Synchronized关键字就是用来激活这把隐式锁的。</p><p><img src="/sync.jpg" alt="img"></p><ul><li>修饰静态方法：锁住当前class（Class类实例），作用于该class的所有实例</li><li>修饰非静态方法：锁住当前class的实例（当前对象实例）</li><li>修饰代码块：该方法接受一个对象作为参数，锁住的即该对象</li></ul><h3 id="对象的内部结构"><a href="#对象的内部结构" class="headerlink" title="对象的内部结构"></a>对象的内部结构</h3><p><img src="/dxjg.image" alt="Java 对象结构"></p><ul><li><strong>Mark Word</strong>：主要用于存储自身运行时数据</li><li><strong>Class Pointer</strong>：是指针，指向方法区中该 class 的对象，JVM 通过此字段来判断当前对象是哪个类的实例</li><li><strong>数组长度</strong>：当且仅当对象是数组时才会有该字段</li></ul><p>锁就在对象头的Mark Word（标记字段）中，mark word在对象中是</p><p><img src="/20200606113746579.png" alt="mark word"></p><p>在JDK6之前内置锁都是重量级的，效率低下。JDK6后为了提高synchronized效率引入偏向锁、轻量级锁，依照锁竞争激烈程度，其状态会按照「无锁 &#x3D;&#x3D;&gt; 偏向锁 &#x3D;&#x3D;&gt; 轻量级锁 &#x3D;&#x3D;&gt; 重量级锁 」状态升级，且状态不可逆，只能升级不能降级。</p><h3 id="锁状态"><a href="#锁状态" class="headerlink" title="锁状态"></a>锁状态</h3><h4 id="无锁"><a href="#无锁" class="headerlink" title="无锁"></a>无锁</h4><p><img src="/ws.image" alt="无锁"></p><p>即没有对资源进行锁定，这里即在单线程状况下运行，没有其他线程来竞争</p><h4 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h4><p><img src="/pxs.image" alt="偏向锁"></p><p><strong>初次执行到synchronized代码块的时候，锁对象变成偏向锁</strong>（通过CAS修改对象头里的锁标志位），字面意思是“偏向于第一个获得它的线程”的锁。<strong>执行完同步代码块后，线程并不会主动释放偏向锁</strong>。当第二次到达同步代码块时，线程会判断此时持有锁的线程是否就是自己（持有锁的线程ID也在对象头里），如果是则正常往下执行。由于之前没有释放锁，这里也就不需要重新加锁。如果自始至终使用锁的线程只有一个，很明显偏向锁几乎没有额外开销，<strong>性能极高</strong>。</p><p>偏向锁是指当一段同步代码一直被同一个线程所访问时，即不存在多个线程的竞争时，那么该线程在后续访问时便会自动获得锁，从而降低获取锁带来的消耗，即提高性能。</p><p>当一个线程访问同步代码块并获取锁时，会在 Mark Word 里存储锁偏向的线程 ID。在线程进入和退出同步块时不再通过 CAS 操作来加锁和解锁，而是检测 Mark Word 里是否存储着指向当前线程的偏向锁。轻量级锁的获取及释放依赖多次 CAS 原子指令，而偏向锁只需要在置换 ThreadID 的时候依赖一次 CAS 原子指令即可。</p><p><strong>偏向锁只有遇到其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁，线程是不会主动释放偏向锁的。</strong></p><p><strong>关于偏向锁的撤销，需要等待全局安全点</strong>，即在某个时间点上没有字节码正在执行时，它会先暂停拥有偏向锁的线程，然后判断锁对象是否处于被锁定状态。如果线程不处于活动状态，则将对象头设置成无锁状态，并撤销偏向锁，恢复到无锁（标志位为01）或轻量级锁（标志位为00）的状态。</p><h4 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a>轻量级锁</h4><p><img src="/qljs.image" alt="轻量级锁"></p><p>一旦有第二个线程参与竞争，就会立即膨胀为<strong>轻量级锁</strong>。企图抢占的线程一开始会使用<strong>自旋</strong>的方式去<strong>尝试获取锁</strong>。如果循环几次，其他的线程释放了锁，就不需要进行用户态到内核态的切换。虽然如此，但自旋需要<strong>占用很多 CPU 的资源</strong>（自行理解汽车空档疯狂踩油门）。如果另一个线程 一直不释放锁，难道它就在这一直空转下去吗？</p><p>当然不可能，JDK 1.7 之前是<strong>普通自旋</strong>，会设定一个最大的自旋次数，<strong>默认是 10 次</strong>，超过这个阈值就停止自旋。JDK 1.7 之后，引入了<strong>适应性自旋</strong>。简单来说就是：这次自旋获取到锁了，自旋的次数就会<strong>增加</strong>；这次自旋没拿到锁，自旋的次数就会<strong>减少</strong>。</p><h4 id="重量级锁"><a href="#重量级锁" class="headerlink" title="重量级锁"></a>重量级锁</h4><p><img src="/zljs.image" alt="重量级锁"></p><p>上面提到，试图抢占的线程自旋达到阈值，就会<strong>停止自旋</strong>，那么此时锁就会膨胀成<strong>重量级锁</strong>。当其膨胀成重量级锁后，其他竞争的线程进来就不会自旋了，而是直接<strong>阻塞</strong>等待，并且 Mark Word 中的内容会变成一个<strong>监视器（monitor）对象</strong>，用来统一管理排队的线程。</p><p>这个 monitor 对象，每个对象都会关联一个。monitor 对象本质上是一个同步机制，保证了同时只有一个线程能够进入临界区，在 HotSpot 的虚拟机中，是由 C++ 类 ObjectMonitor 实现的。</p><p>那么 monitor 对象具体是如何来管理线程的？接下来我们看几个 ObjectMonitor 类关键的属性</p><ul><li><strong>ContentionQueue</strong>：是个队列，所有竞争锁的线程都会<strong>先进入</strong>这个队列中，可以理解为线程的统一入口，进入的线程会阻塞。</li><li><strong>EntryList</strong>：ContentionQueue 中有资格的线程会被移动到这里，相当于进行一轮初筛，进入的线程会阻塞。</li><li><strong>Owner</strong>：拥有当前 monitor 对象的线程，即 —— 持有锁的那个线程。</li><li><strong>OnDeck</strong>：与 Owner 线程进行竞争的线程，同一时刻只会有一个 OnDeck 线程在竞争。</li><li><strong>WaitSet</strong>：当 Owner 线程调用 <code>wait() </code> 方法被阻塞之后，会被放到这里。当其被唤醒之后，会重新进入 EntryList 当中，这个集合的线程都会阻塞。</li><li><strong>Count</strong>：用于实现可重入锁，synchronized 是可重入的。</li></ul><h3 id="锁升级流程"><a href="#锁升级流程" class="headerlink" title="锁升级流程"></a>锁升级流程</h3><p><img src="/ssjlc.image" alt="锁升级流程"></p><p>流程说明</p><ol><li>线程 A 进入 synchronized 开始抢锁，JVM 会判断当前是否是偏向锁的状态，如果是就会根据 Mark Word 中存储的线程 ID 来判断，当前线程 A 是否就是持有偏向锁的线程。如果是，则忽略 check，线程 A 直接执行临界区内的代码。</li><li>但如果 Mark Word 里的线程不是线程 A，就会通过自旋尝试获取锁，如果获取到了，就将 Mark Word 中的线程 ID 改为自己的；如果竞争失败，就会立马撤销偏向锁，膨胀为轻量级锁。</li><li>后续的竞争线程都会通过自旋来尝试获取锁，如果自旋成功那么锁的状态仍然是轻量级锁。然而如果竞争失败，锁会膨胀为重量级锁，后续等待的竞争的线程都会被阻塞。</li></ol><h2 id="ReentrantReadWriteLock-降级"><a href="#ReentrantReadWriteLock-降级" class="headerlink" title="ReentrantReadWriteLock 降级"></a>ReentrantReadWriteLock 降级</h2><h3 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h3><p>ReentrantReadWriteLock 支持由写锁降级为读锁，而不支持由读锁升级为写锁</p><h3 id="代码演示"><a href="#代码演示" class="headerlink" title="代码演示"></a>代码演示</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">//该代码将正常执行</span><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReentrantReadWriteLockDemo</span> &#123;    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;        <span class="hljs-type">ReentrantReadWriteLock</span> <span class="hljs-variable">rw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantReadWriteLock</span>();<span class="hljs-comment">//锁降级过程</span>        rw.writeLock().lock();<span class="hljs-comment">//获取写锁</span>        rw.readLock().lock();<span class="hljs-comment">//获取读锁</span>        rw.writeLock().unlock();<span class="hljs-comment">//释放写锁===&gt;完成锁降级</span>        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>);         rw.readLock().unlock();<span class="hljs-comment">//释放读锁</span>        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>);     &#125;&#125;<span class="hljs-comment">//代码无法正常执行</span><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReentrantReadWriteLockDemo</span> &#123;    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;        <span class="hljs-type">ReentrantReadWriteLock</span> <span class="hljs-variable">rw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantReadWriteLock</span>();<span class="hljs-comment">//锁升级过程</span>        rw.readLock().lock();<span class="hljs-comment">//获取读锁</span>        rw.writeLock().lock();<span class="hljs-comment">//获取写锁===&gt;程序将卡死在这里，无法获取到写锁</span>        rw.readLock().unlock();<span class="hljs-comment">//释放读锁</span>        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>);         rw.writeLock().unlock();        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>);            &#125;&#125;</code></pre></div><h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>写锁是独占锁，读锁是共享锁。线程从写锁降级为读锁，并不需要额外的操作。但是线程从读锁升级为读锁就会有问题了比如其他的线程未释放读锁，而且可能会一直有新的线程来获取读锁。锁降级也可以保证数据不至于刚释放写锁，立马被别的线程占据写锁，数据又被改变，使得数据不可控。</p><p>读锁是共享锁。写锁是排它锁，如果在写锁施放之前施放了写锁，会造成别的线程很快又拿到了写锁，然后阻塞了读锁，造成数据的不可控性（感知不到数据的变化），也造成了不必要的cpu资源浪费，写只需要一个线程来进行，然后共享锁，不需要多线程都去获取这个写锁，如果先施放写锁再获取读锁，后果就是如此。</p>]]></content>
     
@@ -20,11 +20,11 @@
     
     <tags>
       
-      <tag>面试</tag>
+      <tag>JUC</tag>
       
       <tag>源码</tag>
       
-      <tag>JUC</tag>
+      <tag>面试</tag>
       
     </tags>
     
@@ -76,9 +76,9 @@
     
     <tags>
       
-      <tag>前端</tag>
-      
       <tag>学习</tag>
+      
+      <tag>前端</tag>
       
       <tag>Vue</tag>
       
@@ -105,9 +105,9 @@
     
     <tags>
       
-      <tag>面试</tag>
-      
       <tag>源码</tag>
+      
+      <tag>面试</tag>
       
     </tags>
     
@@ -132,9 +132,9 @@
     
     <tags>
       
-      <tag>学习</tag>
-      
       <tag>数据库</tag>
+      
+      <tag>学习</tag>
       
       <tag>redis</tag>
       
