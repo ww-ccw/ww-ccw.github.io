@@ -16,33 +16,29 @@
   <meta name="author" content="chw">
   <meta name="keywords" content="技术博客">
   
-    <meta name="description" content="Synchronized和ReentrantReadWriteLock浅析">
+    <meta name="description" content="Spring概述">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浅析锁机制">
-<meta property="og:url" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/index.html">
+<meta property="og:title" content="Spring概述">
+<meta property="og:url" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/index.html">
 <meta property="og:site_name" content="CHW的博客">
-<meta property="og:description" content="Synchronized和ReentrantReadWriteLock浅析">
+<meta property="og:description" content="Spring概述">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/sync.jpg">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/dxjg.image">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/20200606113746579.png">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/ws.image">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/pxs.image">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/qljs.image">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/zljs.image">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/ssjlc.image">
-<meta property="article:published_time" content="2022-11-04T16:00:00.000Z">
-<meta property="article:modified_time" content="2023-04-11T07:27:27.630Z">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221003154329604.png">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20200613182135382.png">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/fe2c0b589930bbf2988a374c2644d941.png">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221004093207906.png">
+<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20170701095649638.png">
+<meta property="article:published_time" content="2022-09-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-04-15T10:29:20.647Z">
 <meta property="article:author" content="chw">
-<meta property="article:tag" content="面试">
 <meta property="article:tag" content="源码">
-<meta property="article:tag" content="JUC">
+<meta property="article:tag" content="Spring">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://ww-ccw.github.io/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/sync.jpg">
+<meta name="twitter:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221003154329604.png">
   
   
   
-  <title>浅析锁机制 - CHW的博客</title>
+  <title>Spring概述 - CHW的博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -208,7 +204,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="浅析锁机制"></span>
+            <span id="subtitle" data-typed-text="Spring概述"></span>
           
         </div>
 
@@ -219,8 +215,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-11-05 00:00" pubdate>
-          2022年11月5日 凌晨
+        <time datetime="2022-09-06 00:00" pubdate>
+          2022年9月6日 凌晨
         </time>
       </span>
     
@@ -271,91 +267,120 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">浅析锁机制</h1>
+            <h1 style="display: none">Spring概述</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="锁详解"><a href="#锁详解" class="headerlink" title="锁详解"></a>锁详解</h1><h2 id="Synchronized-升级"><a href="#Synchronized-升级" class="headerlink" title="Synchronized 升级"></a>Synchronized 升级</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Synchronized 是Java内置锁。在Java中每个对象中都隐藏着一把锁，而Synchronized关键字就是用来激活这把隐式锁的。</p>
-<p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/sync.jpg" srcset="/img/loading.gif" lazyload alt="img"></p>
-<ul>
-<li>修饰静态方法：锁住当前class（Class类实例），作用于该class的所有实例</li>
-<li>修饰非静态方法：锁住当前class的实例（当前对象实例）</li>
-<li>修饰代码块：该方法接受一个对象作为参数，锁住的即该对象</li>
-</ul>
-<h3 id="对象的内部结构"><a href="#对象的内部结构" class="headerlink" title="对象的内部结构"></a>对象的内部结构</h3><p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/dxjg.image" srcset="/img/loading.gif" lazyload alt="Java 对象结构"></p>
-<ul>
-<li><strong>Mark Word</strong>：主要用于存储自身运行时数据</li>
-<li><strong>Class Pointer</strong>：是指针，指向方法区中该 class 的对象，JVM 通过此字段来判断当前对象是哪个类的实例</li>
-<li><strong>数组长度</strong>：当且仅当对象是数组时才会有该字段</li>
-</ul>
-<p>锁就在对象头的Mark Word（标记字段）中，mark word在对象中是</p>
-<p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/20200606113746579.png" srcset="/img/loading.gif" lazyload alt="mark word"></p>
-<p>在JDK6之前内置锁都是重量级的，效率低下。JDK6后为了提高synchronized效率引入偏向锁、轻量级锁，依照锁竞争激烈程度，其状态会按照「无锁 &#x3D;&#x3D;&gt; 偏向锁 &#x3D;&#x3D;&gt; 轻量级锁 &#x3D;&#x3D;&gt; 重量级锁 」状态升级，且状态不可逆，只能升级不能降级。</p>
-<h3 id="锁状态"><a href="#锁状态" class="headerlink" title="锁状态"></a>锁状态</h3><h4 id="无锁"><a href="#无锁" class="headerlink" title="无锁"></a>无锁</h4><p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/ws.image" srcset="/img/loading.gif" lazyload alt="无锁"></p>
-<p>即没有对资源进行锁定，这里即在单线程状况下运行，没有其他线程来竞争</p>
-<h4 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h4><p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/pxs.image" srcset="/img/loading.gif" lazyload alt="偏向锁"></p>
-<p><strong>初次执行到synchronized代码块的时候，锁对象变成偏向锁</strong>（通过CAS修改对象头里的锁标志位），字面意思是“偏向于第一个获得它的线程”的锁。<strong>执行完同步代码块后，线程并不会主动释放偏向锁</strong>。当第二次到达同步代码块时，线程会判断此时持有锁的线程是否就是自己（持有锁的线程ID也在对象头里），如果是则正常往下执行。由于之前没有释放锁，这里也就不需要重新加锁。如果自始至终使用锁的线程只有一个，很明显偏向锁几乎没有额外开销，<strong>性能极高</strong>。</p>
-<p>偏向锁是指当一段同步代码一直被同一个线程所访问时，即不存在多个线程的竞争时，那么该线程在后续访问时便会自动获得锁，从而降低获取锁带来的消耗，即提高性能。</p>
-<p>当一个线程访问同步代码块并获取锁时，会在 Mark Word 里存储锁偏向的线程 ID。在线程进入和退出同步块时不再通过 CAS 操作来加锁和解锁，而是检测 Mark Word 里是否存储着指向当前线程的偏向锁。轻量级锁的获取及释放依赖多次 CAS 原子指令，而偏向锁只需要在置换 ThreadID 的时候依赖一次 CAS 原子指令即可。</p>
-<p><strong>偏向锁只有遇到其他线程尝试竞争偏向锁时，持有偏向锁的线程才会释放锁，线程是不会主动释放偏向锁的。</strong></p>
-<p><strong>关于偏向锁的撤销，需要等待全局安全点</strong>，即在某个时间点上没有字节码正在执行时，它会先暂停拥有偏向锁的线程，然后判断锁对象是否处于被锁定状态。如果线程不处于活动状态，则将对象头设置成无锁状态，并撤销偏向锁，恢复到无锁（标志位为01）或轻量级锁（标志位为00）的状态。</p>
-<h4 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a>轻量级锁</h4><p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/qljs.image" srcset="/img/loading.gif" lazyload alt="轻量级锁"></p>
-<p>一旦有第二个线程参与竞争，就会立即膨胀为<strong>轻量级锁</strong>。企图抢占的线程一开始会使用<strong>自旋</strong>的方式去<strong>尝试获取锁</strong>。如果循环几次，其他的线程释放了锁，就不需要进行用户态到内核态的切换。虽然如此，但自旋需要<strong>占用很多 CPU 的资源</strong>（自行理解汽车空档疯狂踩油门）。如果另一个线程 一直不释放锁，难道它就在这一直空转下去吗？</p>
-<p>当然不可能，JDK 1.7 之前是<strong>普通自旋</strong>，会设定一个最大的自旋次数，<strong>默认是 10 次</strong>，超过这个阈值就停止自旋。JDK 1.7 之后，引入了<strong>适应性自旋</strong>。简单来说就是：这次自旋获取到锁了，自旋的次数就会<strong>增加</strong>；这次自旋没拿到锁，自旋的次数就会<strong>减少</strong>。</p>
-<h4 id="重量级锁"><a href="#重量级锁" class="headerlink" title="重量级锁"></a>重量级锁</h4><p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/zljs.image" srcset="/img/loading.gif" lazyload alt="重量级锁"></p>
-<p>上面提到，试图抢占的线程自旋达到阈值，就会<strong>停止自旋</strong>，那么此时锁就会膨胀成<strong>重量级锁</strong>。当其膨胀成重量级锁后，其他竞争的线程进来就不会自旋了，而是直接<strong>阻塞</strong>等待，并且 Mark Word 中的内容会变成一个<strong>监视器（monitor）对象</strong>，用来统一管理排队的线程。</p>
-<p>这个 monitor 对象，每个对象都会关联一个。monitor 对象本质上是一个同步机制，保证了同时只有一个线程能够进入临界区，在 HotSpot 的虚拟机中，是由 C++ 类 ObjectMonitor 实现的。</p>
-<p>那么 monitor 对象具体是如何来管理线程的？接下来我们看几个 ObjectMonitor 类关键的属性</p>
-<ul>
-<li><strong>ContentionQueue</strong>：是个队列，所有竞争锁的线程都会<strong>先进入</strong>这个队列中，可以理解为线程的统一入口，进入的线程会阻塞。</li>
-<li><strong>EntryList</strong>：ContentionQueue 中有资格的线程会被移动到这里，相当于进行一轮初筛，进入的线程会阻塞。</li>
-<li><strong>Owner</strong>：拥有当前 monitor 对象的线程，即 —— 持有锁的那个线程。</li>
-<li><strong>OnDeck</strong>：与 Owner 线程进行竞争的线程，同一时刻只会有一个 OnDeck 线程在竞争。</li>
-<li><strong>WaitSet</strong>：当 Owner 线程调用 <code>wait() </code> 方法被阻塞之后，会被放到这里。当其被唤醒之后，会重新进入 EntryList 当中，这个集合的线程都会阻塞。</li>
-<li><strong>Count</strong>：用于实现可重入锁，synchronized 是可重入的。</li>
-</ul>
-<h3 id="锁升级流程"><a href="#锁升级流程" class="headerlink" title="锁升级流程"></a>锁升级流程</h3><p><img src="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/ssjlc.image" srcset="/img/loading.gif" lazyload alt="锁升级流程"></p>
-<p>流程说明</p>
+                <h1 id="Spring详解"><a href="#Spring详解" class="headerlink" title="Spring详解"></a>Spring详解</h1><h2 id="Bean"><a href="#Bean" class="headerlink" title="Bean"></a>Bean</h2><h3 id="Bean是什么"><a href="#Bean是什么" class="headerlink" title="Bean是什么"></a>Bean是什么</h3><ol>
+<li><p>简介</p>
+<p> 在 Spring 中，构成应用程序主干并由Spring IoC容器管理的对象称为bean。bean是一个由Spring IoC容器实例化、组装和管理的对象。bean是一个Java对象，根据bean规范编写出来的类，并由bean容器生成的对象就是一个bean。（不确定，也有说bean和类是一对一关系，是特殊的类）</p>
+<p> 在此意义上@Controller、@Service、@Mapper都有类似于@Bean的用处，即告诉spring这个类是控制器、服务层类、持久层类</p>
+<p> bean规范：</p>
 <ol>
-<li>线程 A 进入 synchronized 开始抢锁，JVM 会判断当前是否是偏向锁的状态，如果是就会根据 Mark Word 中存储的线程 ID 来判断，当前线程 A 是否就是持有偏向锁的线程。如果是，则忽略 check，线程 A 直接执行临界区内的代码。</li>
-<li>但如果 Mark Word 里的线程不是线程 A，就会通过自旋尝试获取锁，如果获取到了，就将 Mark Word 中的线程 ID 改为自己的；如果竞争失败，就会立马撤销偏向锁，膨胀为轻量级锁。</li>
-<li>后续的竞争线程都会通过自旋来尝试获取锁，如果自旋成功那么锁的状态仍然是轻量级锁。然而如果竞争失败，锁会膨胀为重量级锁，后续等待的竞争的线程都会被阻塞。</li>
+<li><p>所有属性为private</p>
+</li>
+<li><p>提供默认构造方法</p>
+</li>
+<li><p>提供getter和setter</p>
+</li>
+<li><p>实现serializable接口</p>
+</li>
+<li><p>默认是单例的（包括@Controller、@Service、@Mapper、@Component…）</p>
+</li>
+<li><p>可以使用@Scope(“prototype”)声明这是一个原型而不是单例</p>
+<ul>
+<li><p>singleton：默认属性， 这个bean会被定义为一个单例对象，第一次被注入时，会创建为一个单例对象，该对象会一直被重复使用直到这个功能结束，该对象的生命周期是与Spring IOC容器 。</p>
+</li>
+<li><p>prototype：bean会在每次注入时都会创建一个新的对象</p>
+</li>
+<li><p>request：bean会在每个HTTP请求中创建一个单例对象，也就是说在单个请求中都会复用这一个单例对象。</p>
+</li>
+<li><p>session：bean会在一个session的生命周期内创建一个单例对象</p>
+</li>
+<li><p>application：bean会为在ServletContext的生命周期中复用一个单例对象。</p>
+</li>
+<li><p>websocket：bean会为在websocket的生命周期中复用一个单例对象。<br>  例如：</p>
+  <div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@Component</span>
+<span class="hljs-meta">@Scope(&quot;prototype&quot;)</span>			<span class="hljs-comment">//&quot;prototype&quot;非单例</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;
+    <span class="hljs-keyword">private</span> String user;
+    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;
+&#125;</code></pre></div></li>
+</ul>
+</li>
 </ol>
-<h2 id="ReentrantReadWriteLock-降级"><a href="#ReentrantReadWriteLock-降级" class="headerlink" title="ReentrantReadWriteLock 降级"></a>ReentrantReadWriteLock 降级</h2><h3 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h3><p>ReentrantReadWriteLock 支持由写锁降级为读锁，而不支持由读锁升级为写锁</p>
-<h3 id="代码演示"><a href="#代码演示" class="headerlink" title="代码演示"></a>代码演示</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">//该代码将正常执行</span>
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReentrantReadWriteLockDemo</span> &#123;
-    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;
-        <span class="hljs-type">ReentrantReadWriteLock</span> <span class="hljs-variable">rw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantReadWriteLock</span>();
-		<span class="hljs-comment">//锁降级过程</span>
-        rw.writeLock().lock();			<span class="hljs-comment">//获取写锁</span>
-        rw.readLock().lock();			<span class="hljs-comment">//获取读锁</span>
-        rw.writeLock().unlock();		<span class="hljs-comment">//释放写锁===&gt;完成锁降级</span>
-        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>);	 
-        rw.readLock().unlock();			<span class="hljs-comment">//释放读锁</span>
-        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>); 
-    &#125;
-&#125;
+</li>
+<li><p>Bean容器</p>
+<p> 或称spring ioc容器，主要用来管理对象和依赖，以及依赖的注入。在 Spring 中，<strong>类的实例化、依赖的实例化、依赖的传入</strong>都交由 Spring Bean 容器控制，而不是用<strong>new</strong>方式实例化对象、通过非构造函数方法传入依赖等常规方式。实质的控制权已经交由程序管理，而不是程序员管理，所以也叫控制反转IOC。</p>
+</li>
+</ol>
+<h3 id="Bean的单例是如何实现的"><a href="#Bean的单例是如何实现的" class="headerlink" title="Bean的单例是如何实现的"></a>Bean的单例是如何实现的</h3><p>Spring通过单例注册表来实现单例，IOC容器维护一个bean表格、当需要一个单例bena时，从表格中获取、没有获取到的，向表格注册一个新的bean</p>
+<p>单例注册表是通过一个ConcurrentHashMap对象实现的。</p>
+<h3 id="Bean默认单例带来的线程安全问题"><a href="#Bean默认单例带来的线程安全问题" class="headerlink" title="Bean默认单例带来的线程安全问题"></a>Bean默认单例带来的线程安全问题</h3><p>问题：Bean默认单例那该如何解决在多线程环境中实现线程安全问题？</p>
+<ol>
+<li>在Bean中不要使用可能造成线程安全问题的成员变量。</li>
+<li>对于必要的需要的变量尽可能的使用局部变量，这样就可以在方法内产生，在方法内消亡</li>
+<li>再万一有非使用不安全变量的时候可以使用ThreadLocal，这样可以使每个线程有独属于自己的存放空间。</li>
+</ol>
+<h2 id="IOC和DI"><a href="#IOC和DI" class="headerlink" title="IOC和DI"></a>IOC和DI</h2><h3 id="IoC本质"><a href="#IoC本质" class="headerlink" title="IoC本质"></a>IoC本质</h3><p><strong>控制反转IoC(Inversion of Control)，是一种设计思想，DI(依赖注入)是实现IoC的一种方法</strong>，原本需要由程序员手动new的对象可以由spring框架为你自动创建并注入，也就是获得对象的方法反转了。IOC容器支持饿汉式和懒加载</p>
+<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221003154329604.png" srcset="/img/loading.gif" lazyload alt="image-20221003154329604"></p>
+<p>在早期spring中配置bean需要在xml文件中书写bean，而在springboot中则不需要去配置xml文件，只须使用注解标注就行。</p>
+<p>最大的优点在于解耦，如果要修改代码的时候不需要牵一发而动全身，到处修改。由容器自动维护具体对象</p>
+<h2 id="AOP"><a href="#AOP" class="headerlink" title="AOP"></a>AOP</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>AOP（Aspect Oriented Programming）意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP是OOP的延续，是软件开发中的一个热点，也是Spring框架中的一个重要内容，是函数式编程的一种衍生范型。利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率</p>
+<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20200613182135382.png" srcset="/img/loading.gif" lazyload alt="AOP示意图"></p>
+<h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><div class="code-wrapper"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>
+   <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.aspectj<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
+   <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>aspectjweaver<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></code></pre></div>
 
+<h3 id="执行流程（Spring2-x）"><a href="#执行流程（Spring2-x）" class="headerlink" title="执行流程（Spring2.x）"></a>执行流程（Spring2.x）</h3><ol>
+<li>Around		环绕</li>
+<li>Before         前置</li>
+<li>业务逻辑</li>
+<li>AfterReturning&#x2F;AfterThrowing     返回后（未到前端）&#x2F;异常后</li>
+<li>After            后置（finially）</li>
+<li>Around        环绕</li>
+</ol>
+<p>注：Spring1.x的4、5顺序交换</p>
+<h2 id="三级缓存"><a href="#三级缓存" class="headerlink" title="三级缓存"></a>三级缓存</h2><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultSingletonBeanRegistry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">SimpleAliasRegistry</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">SingletonBeanRegistry</span> &#123;
+    <span class="hljs-comment">/** 一级缓存：单例对象的缓存：bean 名称到 bean 实例. */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Object&gt; singletonObjects = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;(<span class="hljs-number">256</span>);
 
-<span class="hljs-comment">//代码无法正常执行</span>
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReentrantReadWriteLockDemo</span> &#123;
-    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;
-        <span class="hljs-type">ReentrantReadWriteLock</span> <span class="hljs-variable">rw</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantReadWriteLock</span>();
-		<span class="hljs-comment">//锁升级过程</span>
-        rw.readLock().lock();			<span class="hljs-comment">//获取读锁</span>
-        rw.writeLock().lock();			<span class="hljs-comment">//获取写锁===&gt;程序将卡死在这里，无法获取到写锁</span>
-        rw.readLock().unlock();			<span class="hljs-comment">//释放读锁</span>
-        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>);	 
-        rw.writeLock().unlock();
-        System.out.println(<span class="hljs-string">&quot;正常运行&quot;</span>);
-        
-    &#125;
-&#125;
-</code></pre></div>
+    <span class="hljs-comment">/** 二级缓存：早期单例对象的缓存：已经实例化但未初始化。bean的属性未完全填充 */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Object&gt; earlySingletonObjects = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;(<span class="hljs-number">16</span>);
 
-<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>写锁是独占锁，读锁是共享锁。线程从写锁降级为读锁，并不需要额外的操作。但是线程从读锁升级为读锁就会有问题了比如其他的线程未释放读锁，而且可能会一直有新的线程来获取读锁。锁降级也可以保证数据不至于刚释放写锁，立马被别的线程占据写锁，数据又被改变，使得数据不可控。</p>
-<p>读锁是共享锁。写锁是排它锁，如果在写锁施放之前施放了写锁，会造成别的线程很快又拿到了写锁，然后阻塞了读锁，造成数据的不可控性（感知不到数据的变化），也造成了不必要的cpu资源浪费，写只需要一个线程来进行，然后共享锁，不需要多线程都去获取这个写锁，如果先施放写锁再获取读锁，后果就是如此。</p>
+    <span class="hljs-comment">/** 三级缓存：单例工厂的缓存：创建Bean的工厂. */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, ObjectFactory&lt;?&gt;&gt; singletonFactories = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;(<span class="hljs-number">16</span>);
+&#125;</code></pre></div>
+
+<p>单例Bean的创建就时依赖于三级缓存</p>
+<p>一级缓存：存放所有已经的完全创建好的的Bean，别名单例池</p>
+<p>二级缓存：存放已实例化，但没有初始化的Bean，（这也是解决循环依赖的手段，也只有单例的Bean可以通过提前暴露的方式解决循环依赖，而非单例的Bean每次都需要一个新的对象，所以非单例的Bean时没有缓存的）</p>
+<p>三级缓存：存放生成单例Bean的工厂</p>
+<h4 id="循环依赖"><a href="#循环依赖" class="headerlink" title="循环依赖"></a>循环依赖</h4><p>假如有A和B两个类互为循环依赖，那么创建的过程将会是</p>
+<ol>
+<li>A创建时发现需要B，A先放在三级缓存中，然后去实例化B</li>
+<li>B实例化时发现需要A，那么就先去一级缓存中找，然后去二级缓存中找，最后去三级缓存中找，发现A后，先将A放到二级缓存中，同时删除三级缓存中的A</li>
+<li>B顺利初始化后，将自己放在一级缓存中（此时B中的A还在创建中状态）然后回来创建A，此时B已经创建完成，直接从一级缓存中拿到B完成创建，将A放入一级缓存中</li>
+</ol>
+<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/fe2c0b589930bbf2988a374c2644d941.png" srcset="/img/loading.gif" lazyload alt="三级缓存示意图"></p>
+<p>AB循环依赖问题只要A的注入方式是setter且singleton ，就不会有循环依赖问题。</p>
+<h1 id="SSM流程图"><a href="#SSM流程图" class="headerlink" title="SSM流程图"></a>SSM流程图</h1><p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221004093207906.png" srcset="/img/loading.gif" lazyload alt="ssm执行流程图"></p>
+<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20170701095649638.png" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ol>
+<li>用户发送请求至 前端控制器DispatcherServlet。</li>
+<li>前端控制器DispatcherServlet收到请求后调用处理器映射器HandlerMapping。</li>
+<li>处理器映射器HandlerMapping根据请求的Url找到具体的处理器，生成处理器对象Handler及处理器拦截器HandlerIntercepter（如果有则生成）一并返回给前端控制器DispatcherServlet。</li>
+<li>前端控制器DispatcherServlet通过处理器适配器HandlerAdapter调用处理器Controller。</li>
+<li>执行处理器（Controller，也叫后端控制器）</li>
+<li>处理器Controller执行完后返回ModelAnView。</li>
+<li>处理器映射器HandlerAdapter将处理器Controller执行返回的结果ModelAndView返回给前端控制器DispatcherServlet。</li>
+<li>前端控制器DispatcherServlet将ModelAnView传给视图解析器ViewResolver。</li>
+<li>视图解析器ViewResolver解析后返回具体的视图View。</li>
+<li>前端控制器DispatcherServlet对视图View进行渲染视图（即：将模型数据填充至视图中）</li>
+<li>前端控制器DispatcherServlet响应用户。</li>
+</ol>
 
                 
               </div>
@@ -374,7 +399,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/JUC/" class="category-chain-item">JUC</a>
+  <a href="/categories/Spring/" class="category-chain-item">Spring</a>
   
   
 
@@ -389,11 +414,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E9%9D%A2%E8%AF%95/">#面试</a>
-      
         <a href="/tags/%E6%BA%90%E7%A0%81/">#源码</a>
       
-        <a href="/tags/JUC/">#JUC</a>
+        <a href="/tags/Spring/">#Spring</a>
       
     </div>
   
@@ -405,8 +428,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>浅析锁机制</div>
-      <div>https://ww-ccw.github.io/2022/11/05/juc/Synchronized和ReentrantReadWriteLock/</div>
+      <div>Spring概述</div>
+      <div>https://ww-ccw.github.io/2022/09/06/spring/spring详解/spring详解/</div>
     </div>
     <div class="license-meta">
       
@@ -418,7 +441,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2022年11月5日</div>
+          <div>2022年9月6日</div>
         </div>
       
       
@@ -450,9 +473,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/04/13/algorithm/%E4%BA%8C%E5%88%86%E6%9F%A5%E6%89%BE/" title="">
+                      <a href="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/" title="浅析锁机制">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile"></span>
+                        <span class="hidden-mobile">浅析锁机制</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -460,8 +483,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/" title="Spring概述">
-                        <span class="hidden-mobile">Spring概述</span>
+                      <a href="/2022/09/06/spring/Bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/Bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" title="Spring Bean注入详解">
+                        <span class="hidden-mobile">Spring Bean注入详解</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
