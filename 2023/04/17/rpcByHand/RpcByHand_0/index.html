@@ -16,29 +16,24 @@
   <meta name="author" content="chw">
   <meta name="keywords" content="技术博客">
   
-    <meta name="description" content="Spring概述">
+    <meta name="description" content="RPC框架的简单介绍">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Spring概述">
-<meta property="og:url" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:title" content="手写RPC框架——0、RPC框架的简单介绍">
+<meta property="og:url" content="https://ww-ccw.github.io/2023/04/17/rpcByHand/RpcByHand_0/index.html">
 <meta property="og:site_name" content="CHW的博客">
-<meta property="og:description" content="Spring概述">
+<meta property="og:description" content="RPC框架的简单介绍">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221003154329604.png">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20200613182135382.png">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/fe2c0b589930bbf2988a374c2644d941.png">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221004093207906.png">
-<meta property="og:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20170701095649638.png">
-<meta property="article:published_time" content="2022-09-05T16:00:00.000Z">
-<meta property="article:modified_time" content="2023-04-15T10:29:20.647Z">
+<meta property="og:image" content="https://ww-ccw.github.io/aHR0cHM6Ly9jbi1ndW96aXlhbmcuZ2l0aHViLmlvL015LVJQQy1GcmFtZXdvcmsvaW1nL1JQQyVFNiVBMSU4NiVFNiU5RSVCNiVFNiU4MCU5RCVFOCVCNyVBRi5qcGVn">
+<meta property="article:published_time" content="2023-04-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-04-17T12:38:36.681Z">
 <meta property="article:author" content="chw">
-<meta property="article:tag" content="源码">
-<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="RPC、手写">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://ww-ccw.github.io/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221003154329604.png">
+<meta name="twitter:image" content="https://ww-ccw.github.io/aHR0cHM6Ly9jbi1ndW96aXlhbmcuZ2l0aHViLmlvL015LVJQQy1GcmFtZXdvcmsvaW1nL1JQQyVFNiVBMSU4NiVFNiU5RSVCNiVFNiU4MCU5RCVFOCVCNyVBRi5qcGVn">
   
   
   
-  <title>Spring概述 - CHW的博客</title>
+  <title>手写RPC框架——0、RPC框架的简单介绍 - CHW的博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -204,7 +199,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Spring概述"></span>
+            <span id="subtitle" data-typed-text="手写RPC框架——0、RPC框架的简单介绍"></span>
           
         </div>
 
@@ -215,8 +210,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-09-06 00:00" pubdate>
-          2022年9月6日 凌晨
+        <time datetime="2023-04-17 00:00" pubdate>
+          2023年4月17日 凌晨
         </time>
       </span>
     
@@ -227,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          3.4k 字
+          404 字
         
       </span>
     
@@ -267,120 +262,15 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Spring概述</h1>
+            <h1 style="display: none">手写RPC框架——0、RPC框架的简单介绍</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Spring详解"><a href="#Spring详解" class="headerlink" title="Spring详解"></a>Spring详解</h1><h2 id="Bean"><a href="#Bean" class="headerlink" title="Bean"></a>Bean</h2><h3 id="Bean是什么"><a href="#Bean是什么" class="headerlink" title="Bean是什么"></a>Bean是什么</h3><ol>
-<li><p>简介</p>
-<p> 在 Spring 中，构成应用程序主干并由Spring IoC容器管理的对象称为bean。bean是一个由Spring IoC容器实例化、组装和管理的对象。bean是一个Java对象，根据bean规范编写出来的类，并由bean容器生成的对象就是一个bean。（不确定，也有说bean和类是一对一关系，是特殊的类）</p>
-<p> 在此意义上@Controller、@Service、@Mapper都有类似于@Bean的用处，即告诉spring这个类是控制器、服务层类、持久层类</p>
-<p> bean规范：</p>
-<ol>
-<li><p>所有属性为private</p>
-</li>
-<li><p>提供默认构造方法</p>
-</li>
-<li><p>提供getter和setter</p>
-</li>
-<li><p>实现serializable接口</p>
-</li>
-<li><p>默认是单例的（包括@Controller、@Service、@Mapper、@Component…）</p>
-</li>
-<li><p>可以使用@Scope(“prototype”)声明这是一个原型而不是单例</p>
-<ul>
-<li><p>singleton：默认属性， 这个bean会被定义为一个单例对象，第一次被注入时，会创建为一个单例对象，该对象会一直被重复使用直到这个功能结束，该对象的生命周期是与Spring IOC容器 。</p>
-</li>
-<li><p>prototype：bean会在每次注入时都会创建一个新的对象</p>
-</li>
-<li><p>request：bean会在每个HTTP请求中创建一个单例对象，也就是说在单个请求中都会复用这一个单例对象。</p>
-</li>
-<li><p>session：bean会在一个session的生命周期内创建一个单例对象</p>
-</li>
-<li><p>application：bean会为在ServletContext的生命周期中复用一个单例对象。</p>
-</li>
-<li><p>websocket：bean会为在websocket的生命周期中复用一个单例对象。<br>  例如：</p>
-  <div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@Component</span>
-<span class="hljs-meta">@Scope(&quot;prototype&quot;)</span>			<span class="hljs-comment">//&quot;prototype&quot;非单例</span>
-<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;
-    <span class="hljs-keyword">private</span> String user;
-    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;
-&#125;</code></pre></div></li>
-</ul>
-</li>
-</ol>
-</li>
-<li><p>Bean容器</p>
-<p> 或称spring ioc容器，主要用来管理对象和依赖，以及依赖的注入。在 Spring 中，<strong>类的实例化、依赖的实例化、依赖的传入</strong>都交由 Spring Bean 容器控制，而不是用<strong>new</strong>方式实例化对象、通过非构造函数方法传入依赖等常规方式。实质的控制权已经交由程序管理，而不是程序员管理，所以也叫控制反转IOC。</p>
-</li>
-</ol>
-<h3 id="Bean的单例是如何实现的"><a href="#Bean的单例是如何实现的" class="headerlink" title="Bean的单例是如何实现的"></a>Bean的单例是如何实现的</h3><p>Spring通过单例注册表来实现单例，IOC容器维护一个bean表格、当需要一个单例bena时，从表格中获取、没有获取到的，向表格注册一个新的bean</p>
-<p>单例注册表是通过一个ConcurrentHashMap对象实现的。</p>
-<h3 id="Bean默认单例带来的线程安全问题"><a href="#Bean默认单例带来的线程安全问题" class="headerlink" title="Bean默认单例带来的线程安全问题"></a>Bean默认单例带来的线程安全问题</h3><p>问题：Bean默认单例那该如何解决在多线程环境中实现线程安全问题？</p>
-<ol>
-<li>在Bean中不要使用可能造成线程安全问题的成员变量。</li>
-<li>对于必要的需要的变量尽可能的使用局部变量，这样就可以在方法内产生，在方法内消亡</li>
-<li>再万一有非使用不安全变量的时候可以使用ThreadLocal，这样可以使每个线程有独属于自己的存放空间。</li>
-</ol>
-<h2 id="IOC和DI"><a href="#IOC和DI" class="headerlink" title="IOC和DI"></a>IOC和DI</h2><h3 id="IoC本质"><a href="#IoC本质" class="headerlink" title="IoC本质"></a>IoC本质</h3><p><strong>控制反转IoC(Inversion of Control)，是一种设计思想，DI(依赖注入)是实现IoC的一种方法</strong>，原本需要由程序员手动new的对象可以由spring框架为你自动创建并注入，也就是获得对象的方法反转了。IOC容器支持饿汉式和懒加载</p>
-<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221003154329604.png" srcset="/img/loading.gif" lazyload alt="image-20221003154329604"></p>
-<p>在早期spring中配置bean需要在xml文件中书写bean，而在springboot中则不需要去配置xml文件，只须使用注解标注就行。</p>
-<p>最大的优点在于解耦，如果要修改代码的时候不需要牵一发而动全身，到处修改。由容器自动维护具体对象</p>
-<h2 id="AOP"><a href="#AOP" class="headerlink" title="AOP"></a>AOP</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>AOP（Aspect Oriented Programming）意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP是OOP的延续，是软件开发中的一个热点，也是Spring框架中的一个重要内容，是函数式编程的一种衍生范型。利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率</p>
-<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20200613182135382.png" srcset="/img/loading.gif" lazyload alt="AOP示意图"></p>
-<h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><div class="code-wrapper"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>
-   <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.aspectj<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
-   <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>aspectjweaver<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
-<span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></code></pre></div>
-
-<h3 id="执行流程（Spring2-x）"><a href="#执行流程（Spring2-x）" class="headerlink" title="执行流程（Spring2.x）"></a>执行流程（Spring2.x）</h3><ol>
-<li>Around		环绕</li>
-<li>Before         前置</li>
-<li>业务逻辑</li>
-<li>AfterReturning&#x2F;AfterThrowing     返回后（未到前端）&#x2F;异常后</li>
-<li>After            后置（finially）</li>
-<li>Around        环绕</li>
-</ol>
-<p>注：Spring1.x的4、5顺序交换</p>
-<h2 id="三级缓存"><a href="#三级缓存" class="headerlink" title="三级缓存"></a>三级缓存</h2><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultSingletonBeanRegistry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">SimpleAliasRegistry</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">SingletonBeanRegistry</span> &#123;
-    <span class="hljs-comment">/** 一级缓存：单例对象的缓存：bean 名称到 bean 实例. */</span>
-    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Object&gt; singletonObjects = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;(<span class="hljs-number">256</span>);
-
-    <span class="hljs-comment">/** 二级缓存：早期单例对象的缓存：已经实例化但未初始化。bean的属性未完全填充 */</span>
-    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Object&gt; earlySingletonObjects = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;(<span class="hljs-number">16</span>);
-
-    <span class="hljs-comment">/** 三级缓存：单例工厂的缓存：创建Bean的工厂. */</span>
-    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, ObjectFactory&lt;?&gt;&gt; singletonFactories = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;(<span class="hljs-number">16</span>);
-&#125;</code></pre></div>
-
-<p>单例Bean的创建就时依赖于三级缓存</p>
-<p>一级缓存：存放所有已经的完全创建好的的Bean，别名单例池</p>
-<p>二级缓存：存放已实例化，但没有初始化的Bean，（这也是解决循环依赖的手段，也只有单例的Bean可以通过提前暴露的方式解决循环依赖，而非单例的Bean每次都需要一个新的对象，所以非单例的Bean时没有缓存的）</p>
-<p>三级缓存：存放生成单例Bean的工厂</p>
-<h4 id="循环依赖"><a href="#循环依赖" class="headerlink" title="循环依赖"></a>循环依赖</h4><p>假如有A和B两个类互为循环依赖，那么创建的过程将会是</p>
-<ol>
-<li>A创建时发现需要B，A先放在三级缓存中，然后去实例化B</li>
-<li>B实例化时发现需要A，那么就先去一级缓存中找，然后去二级缓存中找，最后去三级缓存中找，发现A后，先将A放到二级缓存中，同时删除三级缓存中的A</li>
-<li>B顺利初始化后，将自己放在一级缓存中（此时B中的A还在创建中状态）然后回来创建A，此时B已经创建完成，直接从一级缓存中拿到B完成创建，将A放入一级缓存中</li>
-</ol>
-<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/fe2c0b589930bbf2988a374c2644d941.png" srcset="/img/loading.gif" lazyload alt="三级缓存示意图"></p>
-<p>AB循环依赖问题只要A的注入方式是setter且singleton ，就不会有循环依赖问题。</p>
-<h1 id="SSM流程图"><a href="#SSM流程图" class="headerlink" title="SSM流程图"></a>SSM流程图</h1><p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/image-20221004093207906.png" srcset="/img/loading.gif" lazyload alt="ssm执行流程图"></p>
-<p><img src="/2022/09/06/spring/spring%E8%AF%A6%E8%A7%A3/spring%E8%AF%A6%E8%A7%A3/20170701095649638.png" srcset="/img/loading.gif" lazyload alt="img"></p>
-<ol>
-<li>用户发送请求至 前端控制器DispatcherServlet。</li>
-<li>前端控制器DispatcherServlet收到请求后调用处理器映射器HandlerMapping。</li>
-<li>处理器映射器HandlerMapping根据请求的Url找到具体的处理器，生成处理器对象Handler及处理器拦截器HandlerIntercepter（如果有则生成）一并返回给前端控制器DispatcherServlet。</li>
-<li>前端控制器DispatcherServlet通过处理器适配器HandlerAdapter调用处理器Controller。</li>
-<li>执行处理器（Controller，也叫后端控制器）</li>
-<li>处理器Controller执行完后返回ModelAnView。</li>
-<li>处理器映射器HandlerAdapter将处理器Controller执行返回的结果ModelAndView返回给前端控制器DispatcherServlet。</li>
-<li>前端控制器DispatcherServlet将ModelAnView传给视图解析器ViewResolver。</li>
-<li>视图解析器ViewResolver解析后返回具体的视图View。</li>
-<li>前端控制器DispatcherServlet对视图View进行渲染视图（即：将模型数据填充至视图中）</li>
-<li>前端控制器DispatcherServlet响应用户。</li>
-</ol>
+                <h1 id="RPC简单介绍"><a href="#RPC简单介绍" class="headerlink" title="RPC简单介绍"></a>RPC简单介绍</h1><h2 id="RPC和HTTP差别"><a href="#RPC和HTTP差别" class="headerlink" title="RPC和HTTP差别"></a>RPC和HTTP差别</h2><p><strong>RPC（即Remote Procedure Call，远程过程调用）和HTTP（HyperText Transfer Protocol，超文本传输协议）</strong>，两者前者是一种方法，后者则是一种协议。两者都常用于实现服务，在这个层面最本质的区别是RPC服务主要工作在TCP协议之上（也可以在HTTP协议），而HTTP服务工作在HTTP协议之上。由于HTTP协议基于TCP协议，所以RPC服务天然比HTTP更轻量，效率更胜一筹。此外RPC服务可以去掉很多不需要的字段比如HTTP协议会附带的浏览器版本、语言等。</p>
+<p><strong>RPC接口</strong>即相当于调用本地接口一样调用远程服务的接口；<strong>HTTP接口</strong>是基于http协议的post接口和get接口（等等，2.0版本协议子支持更多）。</p>
+<h2 id="RPC框架实现"><a href="#RPC框架实现" class="headerlink" title="RPC框架实现"></a>RPC框架实现</h2><p><img src="/aHR0cHM6Ly9jbi1ndW96aXlhbmcuZ2l0aHViLmlvL015LVJQQy1GcmFtZXdvcmsvaW1nL1JQQyVFNiVBMSU4NiVFNiU5RSVCNiVFNiU4MCU5RCVFOCVCNyVBRi5qcGVn" srcset="/img/loading.gif" lazyload alt="RPC框架思路"></p>
+<p>简单描述：服务端实现了一些接口，客户端调用这些接口，由RPC访问远程服务端，服务端根据请求执行相应的方法将结果返回客户端。</p>
 
                 
               </div>
@@ -399,7 +289,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/Spring/" class="category-chain-item">Spring</a>
+  <a href="/categories/%E6%89%8B%E5%86%99RPC/" class="category-chain-item">手写RPC</a>
   
   
 
@@ -414,9 +304,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%BA%90%E7%A0%81/">#源码</a>
-      
-        <a href="/tags/Spring/">#Spring</a>
+        <a href="/tags/RPC%E3%80%81%E6%89%8B%E5%86%99/">#RPC、手写</a>
       
     </div>
   
@@ -428,8 +316,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Spring概述</div>
-      <div>https://ww-ccw.github.io/2022/09/06/spring/spring详解/spring详解/</div>
+      <div>手写RPC框架——0、RPC框架的简单介绍</div>
+      <div>https://ww-ccw.github.io/2023/04/17/rpcByHand/RpcByHand_0/</div>
     </div>
     <div class="license-meta">
       
@@ -441,7 +329,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2022年9月6日</div>
+          <div>2023年4月17日</div>
         </div>
       
       
@@ -473,18 +361,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/09/06/spring/Bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/Bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" title="Spring Bean注入详解">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Spring Bean注入详解</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/07/22/pay/zfbpay/" title="集成支付宝支付流程">
-                        <span class="hidden-mobile">集成支付宝支付流程</span>
+                      <a href="/2023/04/17/rpcByHand/RpcByHand_1/" title="手写RPC框架——1、一个简单实现的RPC雏形">
+                        <span class="hidden-mobile">手写RPC框架——1、一个简单实现的RPC雏形</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
