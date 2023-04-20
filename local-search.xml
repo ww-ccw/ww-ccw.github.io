@@ -4,6 +4,31 @@
   
   
   <entry>
+    <title>手写RPC框架——4、增加序列化Kryo序列化器和Hession序列化器</title>
+    <link href="/2023/04/20/rpcByHand/RpcByHand_4/"/>
+    <url>/2023/04/20/rpcByHand/RpcByHand_4/</url>
+    
+    <content type="html"><![CDATA[<h1 id="增加序列化方式"><a href="#增加序列化方式" class="headerlink" title="增加序列化方式"></a>增加序列化方式</h1><h2 id="基于Kryo的序列化器"><a href="#基于Kryo的序列化器" class="headerlink" title="基于Kryo的序列化器"></a>基于Kryo的序列化器</h2><h3 id="增加依赖"><a href="#增加依赖" class="headerlink" title="增加依赖"></a>增加依赖</h3><div class="code-wrapper"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.esotericsoftware<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>kryo<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>4.0.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></code></pre></div><h2 id="增加序列化器"><a href="#增加序列化器" class="headerlink" title="增加序列化器"></a>增加序列化器</h2><p>在序列化器标识中加入Kryo</p><div class="code-wrapper"><pre><code class="hljs Java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">enum</span> <span class="hljs-title class_">SerializerCode</span> &#123;    KRYO(<span class="hljs-number">0</span>),    JSON(<span class="hljs-number">1</span>),    HESSIAN(<span class="hljs-number">2</span>);        <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> code;&#125;</code></pre></div><p>由于Kryo是非线程安全的，所以使用ThreadLocal为每个线程创建专属的序列化器</p><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">KryoSerializer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">CommonSerializer</span>&#123;        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(KryoSerializer.class);        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ThreadLocal&lt;Kryo&gt; kryoThreadLocal = ThreadLocal.withInitial(() -&gt;&#123;                <span class="hljs-type">Kryo</span> <span class="hljs-variable">kryo</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Kryo</span>();        kryo.register(RpcResponse.class);        kryo.register(RpcRequest.class);        kryo.setReferences(<span class="hljs-literal">true</span>);        kryo.setRegistrationRequired(<span class="hljs-literal">false</span>);                <span class="hljs-keyword">return</span> kryo;    &#125;);            <span class="hljs-meta">@Override</span>    <span class="hljs-keyword">public</span> <span class="hljs-type">byte</span>[] serialize(Object obj) &#123;        <span class="hljs-keyword">try</span>(<span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">byteArrayOutputStream</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();            <span class="hljs-type">Output</span> <span class="hljs-variable">output</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Output</span>(byteArrayOutputStream))&#123;                        <span class="hljs-type">Kryo</span> <span class="hljs-variable">kryo</span> <span class="hljs-operator">=</span> kryoThreadLocal.get();            kryo.writeObject(output , obj);            kryoThreadLocal.remove();            <span class="hljs-keyword">return</span> output.toBytes();                    &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;            logger.error(<span class="hljs-string">&quot;序列化时出现错误&quot;</span>, e);            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SerializationException</span>(<span class="hljs-string">&quot;序列化时有错误发生&quot;</span>);        &#125;    &#125;        <span class="hljs-meta">@Override</span>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">deserialize</span><span class="hljs-params">(<span class="hljs-type">byte</span>[] bytes, Class&lt;?&gt; clazz)</span> &#123;                <span class="hljs-keyword">try</span>(<span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">byteArrayInputStream</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(bytes);            <span class="hljs-type">Input</span> <span class="hljs-variable">input</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Input</span>(byteArrayInputStream);        ) &#123;                        <span class="hljs-type">Kryo</span> <span class="hljs-variable">kryo</span> <span class="hljs-operator">=</span> kryoThreadLocal.get();            <span class="hljs-type">Object</span> <span class="hljs-variable">obj</span> <span class="hljs-operator">=</span> kryo.readObject(input , clazz);            kryoThreadLocal.remove();            <span class="hljs-keyword">return</span> obj;                    &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;            logger.error(<span class="hljs-string">&quot;反序列化时有错误发生:&quot;</span> , e);            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SerializationException</span>(<span class="hljs-string">&quot;反序列化时有错误发生&quot;</span>);        &#125;    &#125;        <span class="hljs-meta">@Override</span>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getCode</span><span class="hljs-params">()</span> &#123;        <span class="hljs-keyword">return</span> SerializerCode.KRYO.getCode();    &#125;&#125;</code></pre></div><p>将该序列化器放入接口的默认实现</p><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">static</span> CommonSerializer <span class="hljs-title function_">getByCode</span><span class="hljs-params">(<span class="hljs-type">int</span> code)</span>&#123;        <span class="hljs-keyword">switch</span> (code)&#123;            <span class="hljs-keyword">case</span> <span class="hljs-number">0</span>:                <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">KryoSerializer</span>();            <span class="hljs-keyword">case</span> <span class="hljs-number">1</span>:                <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JsonSerializer</span>();            <span class="hljs-keyword">default</span>:                <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;        &#125;    &#125;</code></pre></div><h2 id="客户端和服务端"><a href="#客户端和服务端" class="headerlink" title="客户端和服务端"></a>客户端和服务端</h2><p>将编码器的实现换成Kryo</p><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">new</span> <span class="hljs-title class_">CommonEncoder</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">JsonSerializer</span>())<span class="hljs-keyword">new</span> <span class="hljs-title class_">CommonEncoder</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">KryoSerializer</span>())</code></pre></div><h2 id="基于Hessian的序列化器"><a href="#基于Hessian的序列化器" class="headerlink" title="基于Hessian的序列化器"></a>基于Hessian的序列化器</h2><p>序列化器</p><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">HessianSerializer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">CommonSerializer</span>&#123;        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(HessianSerializer.class);            <span class="hljs-meta">@Override</span>    <span class="hljs-keyword">public</span> <span class="hljs-type">byte</span>[] serialize(Object obj) &#123;        <span class="hljs-type">HessianOutput</span> <span class="hljs-variable">hessianOutput</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;        <span class="hljs-keyword">try</span>(<span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">byteArrayOutputStream</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>())&#123;                        hessianOutput = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HessianOutput</span>(byteArrayOutputStream);            hessianOutput.writeObject(obj);                        <span class="hljs-keyword">return</span> byteArrayOutputStream.toByteArray();        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;            logger.error(<span class="hljs-string">&quot;序列化时有错误发生:&quot;</span> , e);            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SerializationException</span>(<span class="hljs-string">&quot;序列化时有错误发生&quot;</span>);        &#125;<span class="hljs-keyword">finally</span> &#123;            <span class="hljs-keyword">if</span> (hessianOutput != <span class="hljs-literal">null</span>)&#123;                <span class="hljs-keyword">try</span>&#123;                    hessianOutput.close();                &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;                    logger.error(<span class="hljs-string">&quot;关闭流时有错误发生:&quot;</span>,e);                &#125;            &#125;        &#125;    &#125;        <span class="hljs-meta">@Override</span>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">deserialize</span><span class="hljs-params">(<span class="hljs-type">byte</span>[] bytes, Class&lt;?&gt; clazz)</span> &#123;        <span class="hljs-type">HessianInput</span> <span class="hljs-variable">hessianInput</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;        <span class="hljs-keyword">try</span> (<span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">byteArrayInputStream</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(bytes)) &#123;            hessianInput = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HessianInput</span>(byteArrayInputStream);            <span class="hljs-keyword">return</span> hessianInput.readObject();        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;            logger.error(<span class="hljs-string">&quot;反序列化时有错误发生:&quot;</span>, e);            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SerializationException</span>(<span class="hljs-string">&quot;反序列化时有错误发生&quot;</span>);        &#125; <span class="hljs-keyword">finally</span> &#123;            <span class="hljs-keyword">if</span>(hessianInput != <span class="hljs-literal">null</span>) hessianInput.close();        &#125;    &#125;        <span class="hljs-meta">@Override</span>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getCode</span><span class="hljs-params">()</span> &#123;        <span class="hljs-keyword">return</span> SerializerCode.HESSIAN.getCode();    &#125;&#125;</code></pre></div><p>其他步骤同上</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>手写RPC</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>RPC、手写</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>手写RPC框架——3、使用Netty传输和通用序列化接口</title>
     <link href="/2023/04/19/rpcByHand/RpcByHand_3/"/>
     <url>/2023/04/19/rpcByHand/RpcByHand_3/</url>
@@ -120,11 +145,11 @@
     
     <tags>
       
-      <tag>面试</tag>
+      <tag>JUC</tag>
       
       <tag>源码</tag>
       
-      <tag>JUC</tag>
+      <tag>面试</tag>
       
     </tags>
     
@@ -257,9 +282,9 @@
     
     <tags>
       
-      <tag>面试</tag>
-      
       <tag>源码</tag>
+      
+      <tag>面试</tag>
       
     </tags>
     
@@ -340,11 +365,11 @@
     
     <tags>
       
-      <tag>面试</tag>
+      <tag>JUC</tag>
       
       <tag>源码</tag>
       
-      <tag>JUC</tag>
+      <tag>面试</tag>
       
     </tags>
     
