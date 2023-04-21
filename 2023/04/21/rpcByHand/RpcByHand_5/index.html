@@ -16,25 +16,23 @@
   <meta name="author" content="chw">
   <meta name="keywords" content="技术博客">
   
-    <meta name="description" content="RPC框架的简单介绍">
+    <meta name="description" content="使用服务注册中心实现服务发布和发现">
 <meta property="og:type" content="article">
-<meta property="og:title" content="手写RPC框架——0、RPC框架的简单介绍">
-<meta property="og:url" content="https://ww-ccw.github.io/2023/04/16/rpcByHand/RpcByHand_0/index.html">
+<meta property="og:title" content="手写RPC框架——5、使用Nacos作为服务注册中心">
+<meta property="og:url" content="https://ww-ccw.github.io/2023/04/21/rpcByHand/RpcByHand_5/index.html">
 <meta property="og:site_name" content="CHW的博客">
-<meta property="og:description" content="RPC框架的简单介绍">
+<meta property="og:description" content="使用服务注册中心实现服务发布和发现">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://ww-ccw.github.io/2023/04/16/rpcByHand/RpcByHand_0/aHR0cHM6Ly9jbi1ndW96aXlhbmcuZ2l0aHViLmlvL015LVJQQy1GcmFtZXdvcmsvaW1nL1JQQyVFNiVBMSU4NiVFNiU5RSVCNiVFNiU4MCU5RCVFOCVCNyVBRi5qcGVn">
-<meta property="article:published_time" content="2023-04-15T16:00:00.000Z">
-<meta property="article:modified_time" content="2023-04-21T12:32:37.707Z">
+<meta property="article:published_time" content="2023-04-20T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-04-21T13:10:27.110Z">
 <meta property="article:author" content="chw">
 <meta property="article:tag" content="RPC">
 <meta property="article:tag" content="项目">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://ww-ccw.github.io/2023/04/16/rpcByHand/RpcByHand_0/aHR0cHM6Ly9jbi1ndW96aXlhbmcuZ2l0aHViLmlvL015LVJQQy1GcmFtZXdvcmsvaW1nL1JQQyVFNiVBMSU4NiVFNiU5RSVCNiVFNiU4MCU5RCVFOCVCNyVBRi5qcGVn">
   
   
   
-  <title>手写RPC框架——0、RPC框架的简单介绍 - CHW的博客</title>
+  <title>手写RPC框架——5、使用Nacos作为服务注册中心 - CHW的博客</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +198,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="手写RPC框架——0、RPC框架的简单介绍"></span>
+            <span id="subtitle" data-typed-text="手写RPC框架——5、使用Nacos作为服务注册中心"></span>
           
         </div>
 
@@ -211,8 +209,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2023-04-16 00:00" pubdate>
-          2023年4月16日 凌晨
+        <time datetime="2023-04-21 00:00" pubdate>
+          2023年4月21日 凌晨
         </time>
       </span>
     
@@ -223,7 +221,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          404 字
+          3.5k 字
         
       </span>
     
@@ -263,15 +261,120 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">手写RPC框架——0、RPC框架的简单介绍</h1>
+            <h1 style="display: none">手写RPC框架——5、使用Nacos作为服务注册中心</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="RPC简单介绍"><a href="#RPC简单介绍" class="headerlink" title="RPC简单介绍"></a>RPC简单介绍</h1><h2 id="RPC和HTTP差别"><a href="#RPC和HTTP差别" class="headerlink" title="RPC和HTTP差别"></a>RPC和HTTP差别</h2><p><strong>RPC（即Remote Procedure Call，远程过程调用）和HTTP（HyperText Transfer Protocol，超文本传输协议）</strong>，两者前者是一种方法，后者则是一种协议。两者都常用于实现服务，在这个层面最本质的区别是RPC服务主要工作在TCP协议之上（也可以在HTTP协议），而HTTP服务工作在HTTP协议之上。由于HTTP协议基于TCP协议，所以RPC服务天然比HTTP更轻量，效率更胜一筹。此外RPC服务可以去掉很多不需要的字段比如HTTP协议会附带的浏览器版本、语言等。</p>
-<p><strong>RPC接口</strong>即相当于调用本地接口一样调用远程服务的接口；<strong>HTTP接口</strong>是基于http协议的post接口和get接口（等等，2.0版本协议子支持更多）。</p>
-<h2 id="RPC框架实现"><a href="#RPC框架实现" class="headerlink" title="RPC框架实现"></a>RPC框架实现</h2><p><img src="/2023/04/16/rpcByHand/RpcByHand_0/aHR0cHM6Ly9jbi1ndW96aXlhbmcuZ2l0aHViLmlvL015LVJQQy1GcmFtZXdvcmsvaW1nL1JQQyVFNiVBMSU4NiVFNiU5RSVCNiVFNiU4MCU5RCVFOCVCNyVBRi5qcGVn" srcset="/img/loading.gif" lazyload alt="RPC框架思路"></p>
-<p>简单描述：服务端实现了一些接口，客户端调用这些接口，由RPC访问远程服务端，服务端根据请求执行相应的方法将结果返回客户端。</p>
+                <h1 id="使用Nacos发布发现服务"><a href="#使用Nacos发布发现服务" class="headerlink" title="使用Nacos发布发现服务"></a>使用Nacos发布发现服务</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>目前的主要问题在于服务的地址都是写在在客户端的，而且一个服务只能有一台服务主机提供。所以我们需要一个服务注册中心，服务端向注册中心发布主机的服务，客户端通过服务名从注册中心获取服务的地址。</p>
+<p>这里选择nacos作为服务注册中心。</p>
+<h2 id="引入nacos"><a href="#引入nacos" class="headerlink" title="引入nacos"></a>引入nacos</h2><p>引入依赖</p>
+<div class="code-wrapper"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.3.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></code></pre></div>
+
+<p>将原来的服务注册表<code>ServiceRegistery</code>改名为<code>ServiceProvider</code>，仍然作为本地保存服务的列表。新创建一个<code>ServiceRegistery</code>作为向nacos注册的接口。</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ServiceRegistry</span> &#123;
+    
+    &lt;T&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">register</span><span class="hljs-params">(String serviceName, InetSocketAddress inetSocketAddress)</span>;
+    InetSocketAddress <span class="hljs-title function_">lookupService</span><span class="hljs-params">(String serviceName)</span>;
+&#125;</code></pre></div>
+
+<p>接口实现类</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NacosServiceRegistry</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ServiceRegistry</span>&#123;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(NacosServiceRegistry.class);
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">SERVER_ADDR</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;127.0.0.1:8848&quot;</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> NamingService namingService;
+    
+    <span class="hljs-keyword">static</span> &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            namingService = NamingFactory.createNamingService(SERVER_ADDR);
+        &#125; <span class="hljs-keyword">catch</span> (NacosException e) &#123;
+            logger.error(<span class="hljs-string">&quot;连接到Nacos时有错误发生: &quot;</span>, e);
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RpcException</span>(RpcError.FAILED_TO_CONNECT_TO_SERVICE_REGISTRY);
+        &#125;
+    &#125;
+    
+    
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">register</span><span class="hljs-params">(String serviceName, InetSocketAddress inetSocketAddress)</span> &#123;
+        <span class="hljs-keyword">try</span> &#123;
+            namingService.registerInstance(serviceName , inetSocketAddress.getHostName() , inetSocketAddress.getPort());
+        &#125; <span class="hljs-keyword">catch</span> (NacosException e) &#123;
+            logger.error(<span class="hljs-string">&quot;注册服务失败:&quot;</span> , e);
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RpcException</span>(RpcError.REGISTER_SERVICE_FAILED);
+        &#125;
+    &#125;
+    
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> InetSocketAddress <span class="hljs-title function_">lookupService</span><span class="hljs-params">(String serviceName)</span> &#123;
+        <span class="hljs-keyword">try</span>&#123;
+            List&lt;Instance&gt; instances = namingService.getAllInstances(serviceName);
+            <span class="hljs-type">Instance</span> <span class="hljs-variable">instance</span> <span class="hljs-operator">=</span> instances.get(<span class="hljs-number">0</span>);
+            <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">InetSocketAddress</span>(instance.getIp() , instance.getPort());
+        &#125; <span class="hljs-keyword">catch</span> (NacosException e) &#123;
+            logger.error(<span class="hljs-string">&quot;获取服务时出错了&quot;</span>);
+            e.printStackTrace();
+        &#125;
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+    &#125;
+&#125;
+</code></pre></div>
+
+<p>通过NamingFactory NamingService 连接到Nacos。然后服务发布只需要通过<code>register</code>传入服务的名称和服务地址即可。而服务发现则通过<code>InetSocketAddress</code>获取到。服务发现会获取到全部的该服务名称的全部服务，这里暂且只选择0号使用，后续添加轮询进行负载均衡。</p>
+<h2 id="服务发布"><a href="#服务发布" class="headerlink" title="服务发布"></a>服务发布</h2><p>在RocServer中添加一个发布服务的方法</p>
+<div class="code-wrapper"><pre><code class="hljs java">&lt;T&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">publishService</span><span class="hljs-params">(Object service, Class&lt;T&gt; serviceClass)</span>;</code></pre></div>
+
+<p>接着在实现类中添加服务端host和port，并实现方法</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">NettyServer</span><span class="hljs-params">(String host, <span class="hljs-type">int</span> port)</span> &#123;
+    <span class="hljs-built_in">this</span>.host = host;
+    <span class="hljs-built_in">this</span>.port = port;
+    serviceRegistry = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NacosServiceRegistry</span>();
+    serviceProvider = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ServiceProviderImpl</span>();
+&#125;
+
+<span class="hljs-meta">@Override</span>
+<span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">publishService</span><span class="hljs-params">(Object service, Class&lt;T&gt; serviceClass)</span> &#123;
+    serviceRegistry.register(serviceClass.getCanonicalName() , <span class="hljs-keyword">new</span> <span class="hljs-title class_">InetSocketAddress</span>(host , port));
+    serviceProvider.addServiceProvider(service);
+&#125;</code></pre></div>
+
+<p>在这里使用服务端使用publishService进行服务注册。并修改接口的<code>start</code>方法，现在不需要传递host和port了。</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">void</span> <span class="hljs-title function_">start</span><span class="hljs-params">()</span>;</code></pre></div>
+
+<h2 id="服务发现"><a href="#服务发现" class="headerlink" title="服务发现"></a>服务发现</h2><p>RpcClient中不需要再传入服务端的host和port，现在只需要通过<code>ServiceRegistery</code>来获得服务地址即可。</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">try</span>&#123;
+    <span class="hljs-comment">//获取服务名称对应的服务提供地址</span>
+    <span class="hljs-type">InetSocketAddress</span> <span class="hljs-variable">inetSocketAddress</span> <span class="hljs-operator">=</span> serviceRegistry.lookupService(rpcRequest.getInterfaceName());
+    <span class="hljs-comment">//获取channel</span>
+    <span class="hljs-type">Channel</span> <span class="hljs-variable">channel</span> <span class="hljs-operator">=</span> ChannelProvider.get(inetSocketAddress, serializer);</code></pre></div>
+
+<p>同理更改socket方式的客户端和服务端</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NettyTestServer</span> &#123;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;
+        <span class="hljs-type">HelloService</span> <span class="hljs-variable">helloService</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HelloServiceImpl</span>();
+        <span class="hljs-type">RpcServer</span> <span class="hljs-variable">rpcServer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NettyServer</span>(<span class="hljs-string">&quot;localhost&quot;</span> , <span class="hljs-number">9998</span>);
+        rpcServer.setSerializer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">KryoSerializer</span>());
+        rpcServer.publishService(helloService,HelloService.class);
+        rpcServer.start();
+    &#125;
+&#125;</code></pre></div>
+
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NettyTestClient</span> &#123;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;
+        <span class="hljs-type">RpcClient</span> <span class="hljs-variable">client</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NettyClient</span>();
+        client.setSerializer(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HessianSerializer</span>());
+        <span class="hljs-type">RpcClientProxy</span> <span class="hljs-variable">rpcClientProxy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RpcClientProxy</span>(client);
+        <span class="hljs-type">HelloService</span> <span class="hljs-variable">helloService</span> <span class="hljs-operator">=</span> rpcClientProxy.getProxy(HelloService.class);
+        <span class="hljs-type">HelloObject</span> <span class="hljs-variable">object</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HelloObject</span>(<span class="hljs-number">12</span>, <span class="hljs-string">&quot;This is a message&quot;</span>);
+        <span class="hljs-type">String</span> <span class="hljs-variable">res</span> <span class="hljs-operator">=</span> helloService.hello(object);
+        System.out.println(res);
+    &#125;
+&#125;</code></pre></div>
+
 
                 
               </div>
@@ -319,8 +422,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>手写RPC框架——0、RPC框架的简单介绍</div>
-      <div>https://ww-ccw.github.io/2023/04/16/rpcByHand/RpcByHand_0/</div>
+      <div>手写RPC框架——5、使用Nacos作为服务注册中心</div>
+      <div>https://ww-ccw.github.io/2023/04/21/rpcByHand/RpcByHand_5/</div>
     </div>
     <div class="license-meta">
       
@@ -332,7 +435,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2023年4月16日</div>
+          <div>2023年4月21日</div>
         </div>
       
       
@@ -364,18 +467,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2023/04/17/rpcByHand/RpcByHand_1/" title="手写RPC框架——1、一个简单实现的RPC雏形">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">手写RPC框架——1、一个简单实现的RPC雏形</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/11/05/juc/Synchronized%E5%92%8CReentrantReadWriteLock/" title="浅析锁机制">
-                        <span class="hidden-mobile">浅析锁机制</span>
+                      <a href="/2023/04/20/rpcByHand/RpcByHand_4/" title="手写RPC框架——4、增加序列化Kryo序列化器和Hession序列化器">
+                        <span class="hidden-mobile">手写RPC框架——4、增加序列化Kryo序列化器和Hession序列化器</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
