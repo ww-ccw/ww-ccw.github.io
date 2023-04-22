@@ -1,0 +1,907 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="chw">
+  <meta name="keywords" content="技术博客">
+  
+    <meta name="description" content="Netty客户端发送的请求全部使用异步，同时维护一张Channel连接表，避免重复连接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手写RPC框架——7、Netty客户端优化">
+<meta property="og:url" content="https://ww-ccw.github.io/2023/04/22/rpcByHand/RpcByHand_7/index.html">
+<meta property="og:site_name" content="CHW的博客">
+<meta property="og:description" content="Netty客户端发送的请求全部使用异步，同时维护一张Channel连接表，避免重复连接">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-04-22T13:06:36.298Z">
+<meta property="article:author" content="chw">
+<meta property="article:tag" content="RPC">
+<meta property="article:tag" content="项目">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>手写RPC框架——7、Netty客户端优化 - CHW的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"ww-ccw.github.io","root":"/","version":"1.9.4","typing":{"enable":true,"typeSpeed":70,"cursorChar":"","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>CHW的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="手写RPC框架——7、Netty客户端优化"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-04-22 00:00" pubdate>
+          2023年4月22日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.8k 字
+        
+      </span>
+    
+
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">手写RPC框架——7、Netty客户端优化</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Netty客户端优化"><a href="#Netty客户端优化" class="headerlink" title="Netty客户端优化"></a>Netty客户端优化</h1><p>Netty客户端优化主分有两部分，一个是每次发起请求都需要重新连接获取Channel，过于浪费资源，我们可以维护一张Channel表。同时客户端的请求可以使用CompletableFuture异步发起请求。</p>
+<h2 id="更改channel获取规则"><a href="#更改channel获取规则" class="headerlink" title="更改channel获取规则"></a>更改channel获取规则</h2><p>ChannelProvider中添加Map，维护已经连接到的Channel。</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ChannelProvider</span> &#123;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(ChannelProvider.class);
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> EventLoopGroup eventLoopGroup;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-type">Bootstrap</span> <span class="hljs-variable">bootstrap</span> <span class="hljs-operator">=</span> initializeBootstrap();
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Map&lt;String, Channel&gt; channels = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Bootstrap <span class="hljs-title function_">initializeBootstrap</span><span class="hljs-params">()</span> &#123;
+        eventLoopGroup = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NioEventLoopGroup</span>();
+        <span class="hljs-type">Bootstrap</span> <span class="hljs-variable">bootstrap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Bootstrap</span>();
+        bootstrap.group(eventLoopGroup)
+                .channel(NioSocketChannel.class)
+                <span class="hljs-comment">//连接的超时时间，超过这个时间还是建立不上的话则代表连接失败</span>
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, <span class="hljs-number">5000</span>)
+                <span class="hljs-comment">//是否开启 TCP 底层心跳机制</span>
+                .option(ChannelOption.SO_KEEPALIVE, <span class="hljs-literal">true</span>)
+                <span class="hljs-comment">//TCP默认开启了 Nagle 算法，该算法的作用是尽可能的发送大数据快，减少网络传输。TCP_NODELAY 参数的作用就是控制是否启用 Nagle 算法。</span>
+                .option(ChannelOption.TCP_NODELAY, <span class="hljs-literal">true</span>);
+        <span class="hljs-keyword">return</span> bootstrap;
+    &#125;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 获取Channel，如果已存在该连接，且连接正常直接返回，否则新建连接</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Channel <span class="hljs-title function_">get</span><span class="hljs-params">(InetSocketAddress inetSocketAddress, CommonSerializer serializer)</span> <span class="hljs-keyword">throws</span> InterruptedException &#123;
+        
+        <span class="hljs-type">String</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> inetSocketAddress.toString() + serializer.getCode();
+        <span class="hljs-comment">//已存在该连接，且连接正常直接返回</span>
+        <span class="hljs-keyword">if</span> (channels.containsKey(key)) &#123;
+            <span class="hljs-type">Channel</span> <span class="hljs-variable">channel</span> <span class="hljs-operator">=</span> channels.get(key);
+            <span class="hljs-keyword">if</span>(channels != <span class="hljs-literal">null</span> &amp;&amp; channel.isActive()) &#123;
+                <span class="hljs-keyword">return</span> channel;
+            &#125; <span class="hljs-keyword">else</span> &#123;
+                channels.remove(key);
+            &#125;
+        &#125;
+        
+        <span class="hljs-comment">//初始化bootstrap</span>
+        bootstrap.handler(<span class="hljs-keyword">new</span> <span class="hljs-title class_">ChannelInitializer</span>&lt;SocketChannel&gt;() &#123;
+            <span class="hljs-meta">@Override</span>
+            <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">initChannel</span><span class="hljs-params">(SocketChannel ch)</span> &#123;
+                <span class="hljs-comment">// RpcResponse -&gt; ByteBuf</span>
+                ch.pipeline().addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">CommonEncoder</span>(serializer))
+                        .addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">CommonDecoder</span>())
+                        .addLast(<span class="hljs-keyword">new</span> <span class="hljs-title class_">NettyClientHandler</span>());
+            &#125;
+        &#125;);
+        
+        <span class="hljs-type">Channel</span> <span class="hljs-variable">channel</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;
+        <span class="hljs-keyword">try</span> &#123;
+            channel = connect(bootstrap, inetSocketAddress);
+        &#125; <span class="hljs-keyword">catch</span> (ExecutionException e) &#123;
+            logger.error(<span class="hljs-string">&quot;获取channel时有错误发生:&quot;</span>, e);
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+        &#125;
+        channels.put(key, channel);
+        <span class="hljs-keyword">return</span> channel;
+    &#125;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 使用异步连接，但最后的get还是要阻塞等待连接有结果。</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Channel <span class="hljs-title function_">connect</span><span class="hljs-params">(Bootstrap bootstrap, InetSocketAddress inetSocketAddress)</span> <span class="hljs-keyword">throws</span> ExecutionException, InterruptedException &#123;
+        
+        CompletableFuture&lt;Channel&gt; completableFuture = <span class="hljs-keyword">new</span> <span class="hljs-title class_">CompletableFuture</span>&lt;&gt;();
+    
+        <span class="hljs-comment">//尝试连接绑定监听器</span>
+        bootstrap.connect(inetSocketAddress).addListener((ChannelFutureListener) future -&gt; &#123;
+            <span class="hljs-keyword">if</span> (future.isSuccess()) &#123;
+                logger.info(<span class="hljs-string">&quot;客户端连接成功!&quot;</span>);
+                completableFuture.complete(future.channel());
+            &#125; <span class="hljs-keyword">else</span> &#123;
+                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>();
+            &#125;
+        &#125;);
+        <span class="hljs-comment">//如果连接还没有结果，这里会阻塞</span>
+        <span class="hljs-keyword">return</span> completableFuture.get();
+    &#125;
+    
+&#125;</code></pre></div>
+
+<h2 id="修改客户端"><a href="#修改客户端" class="headerlink" title="修改客户端"></a>修改客户端</h2><p><code>RpcClientProxy</code>使用<code>invoke</code>调用<code>NettyClient</code>然后阻塞等待结果。<code>NettyClient</code>将发起的请求保存在其中<code>request</code>请求号为key ，<code>CompletableFuture&lt;RpcResponse&gt;</code>为value，然后发起请求。<code>NettyClientHandler</code>收到响应后，将<code>UnprocessedRequests</code>中对应的future结果设置为返回的响应传回来的<code>response</code>，此时<code>RpcClientProxy</code>结束阻塞得到结果。</p>
+<p>UnprocessedRequests是张未完成的请求表，主要作用是<code>Handler</code>收到响应后通过这张表找到为阻塞<code>RpcClientProxy</code>的<code>future</code>设置返回结果。</p>
+<p>新建UnprocessedRequests</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UnprocessedRequests</span> &#123;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ConcurrentHashMap&lt;String, CompletableFuture&lt;RpcResponse&gt;&gt; unprocessedResponseFutures = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConcurrentHashMap</span>&lt;&gt;();
+    
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(String requestId, CompletableFuture&lt;RpcResponse&gt; future)</span> &#123;
+        unprocessedResponseFutures.put(requestId, future);
+    &#125;
+    
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">remove</span><span class="hljs-params">(String requestId)</span> &#123;
+        unprocessedResponseFutures.remove(requestId);
+    &#125;
+    
+    <span class="hljs-comment">//设置CompletableFuture的返回结果</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">complete</span><span class="hljs-params">(RpcResponse rpcResponse)</span> &#123;
+        CompletableFuture&lt;RpcResponse&gt; future = unprocessedResponseFutures.remove(rpcResponse.getRequestId());
+        <span class="hljs-keyword">if</span> (<span class="hljs-literal">null</span> != future) &#123;
+            future.complete(rpcResponse);
+        &#125; <span class="hljs-keyword">else</span> &#123;
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>();
+        &#125;
+    &#125;
+&#125;</code></pre></div>
+
+<p>修改RpcClientProxy</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">RpcClientProxy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">InvocationHandler</span> &#123;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(RpcClientProxy.class);
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RpcClient client;
+    
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">RpcClientProxy</span><span class="hljs-params">(RpcClient client)</span> &#123;
+        <span class="hljs-built_in">this</span>.client = client;
+    &#125;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 动态代理生成实例对象</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> clazz 要实现的接口</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt; 代理对象的类型</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@return</span> 代理获得的实例转换成T类型返回</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span>
+    <span class="hljs-keyword">public</span> &lt;T&gt; T <span class="hljs-title function_">getProxy</span><span class="hljs-params">(Class&lt;T&gt; clazz)</span>&#123;
+        <span class="hljs-keyword">return</span> (T)Proxy.newProxyInstance(clazz.getClassLoader() , <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>&lt;?&gt;[]&#123;clazz&#125; , <span class="hljs-built_in">this</span>);
+    &#125;
+    
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-meta">@SuppressWarnings(&quot;unchecked&quot;)</span>
+    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span>&#123;
+        logger.info(<span class="hljs-string">&quot;调用方法: &#123;&#125;#&#123;&#125;&quot;</span>, method.getDeclaringClass().getName(), method.getName());
+        
+        <span class="hljs-type">RpcRequest</span> <span class="hljs-variable">rpcRequest</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RpcRequest</span>( UUID.randomUUID().toString() , method.getDeclaringClass().getName(),
+                method.getName(), args, method.getParameterTypes());
+        <span class="hljs-type">Object</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;
+        <span class="hljs-keyword">if</span> (client <span class="hljs-keyword">instanceof</span> NettyClient) &#123;
+            CompletableFuture&lt;RpcResponse&gt; completableFuture = (CompletableFuture&lt;RpcResponse&gt;) client.sendRequest(rpcRequest);
+            <span class="hljs-keyword">try</span> &#123;
+                result = completableFuture.get().getData();
+            &#125; <span class="hljs-keyword">catch</span> (InterruptedException | ExecutionException e) &#123;
+                logger.error(<span class="hljs-string">&quot;方法调用请求发送失败&quot;</span>, e);
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+            &#125;
+        &#125;
+        <span class="hljs-keyword">if</span> (client <span class="hljs-keyword">instanceof</span> SocketClient) &#123;
+            <span class="hljs-type">RpcResponse</span> <span class="hljs-variable">rpcResponse</span> <span class="hljs-operator">=</span> (RpcResponse) client.sendRequest(rpcRequest);
+            result = rpcResponse.getData();
+        &#125;
+        <span class="hljs-keyword">return</span> result;
+    &#125;
+&#125;</code></pre></div>
+
+<p>修改NettyClient</p>
+<div class="code-wrapper"><pre><code class="hljs java">
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NettyClient</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">RpcClient</span> &#123;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(NettyClient.class);
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> EventLoopGroup group;
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 用于配置和启动Netty客户端的各种参数，例如线程、通道类型、处理器等。一旦配置好了，就可以调用Bootstrap.connect()方法连接到服务器。</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Bootstrap bootstrap;
+    
+    <span class="hljs-keyword">static</span> &#123;
+        bootstrap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Bootstrap</span>();
+        <span class="hljs-comment">//EventLoopGroup是Netty的一个线程组，内部维护一组NIO线程，由这些线程负责连接、读写等网络操作</span>
+        group = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NioEventLoopGroup</span>();
+        bootstrap.group(group)
+                <span class="hljs-comment">//指定连接类型为NIO</span>
+                .channel(NioSocketChannel.class);
+    &#125;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> CommonSerializer serializer;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ServiceDiscovery serviceDiscovery;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> UnprocessedRequests unprocessedRequests;
+    
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">NettyClient</span><span class="hljs-params">()</span> &#123;
+        <span class="hljs-built_in">this</span>(DEFAULT_SERIALIZER);
+    &#125;
+    
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">NettyClient</span><span class="hljs-params">(Integer serializer)</span> &#123;
+        <span class="hljs-built_in">this</span>.serviceDiscovery = <span class="hljs-keyword">new</span> <span class="hljs-title class_">NacosServiceDiscovery</span>();
+        <span class="hljs-built_in">this</span>.serializer = CommonSerializer.getByCode(serializer);
+        <span class="hljs-built_in">this</span>.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
+    
+    &#125;
+    
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> CompletableFuture&lt;RpcResponse&gt; <span class="hljs-title function_">sendRequest</span><span class="hljs-params">(RpcRequest rpcRequest)</span> &#123;
+    
+        CompletableFuture&lt;RpcResponse&gt; resultFuture = <span class="hljs-keyword">new</span> <span class="hljs-title class_">CompletableFuture</span>&lt;&gt;();
+        <span class="hljs-keyword">try</span> &#123;
+            <span class="hljs-type">InetSocketAddress</span> <span class="hljs-variable">inetSocketAddress</span> <span class="hljs-operator">=</span> serviceDiscovery.lookupService(rpcRequest.getInterfaceName());
+            <span class="hljs-type">Channel</span> <span class="hljs-variable">channel</span> <span class="hljs-operator">=</span> ChannelProvider.get(inetSocketAddress, serializer);
+            <span class="hljs-keyword">if</span> (!channel.isActive()) &#123;
+                group.shutdownGracefully();
+                <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+            &#125;
+            <span class="hljs-comment">//将请求加入未完成名单</span>
+            unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);
+            <span class="hljs-comment">//发送请求</span>
+            channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) future1 -&gt; &#123;
+                <span class="hljs-keyword">if</span> (future1.isSuccess()) &#123;
+                    logger.info(String.format(<span class="hljs-string">&quot;客户端发送消息: %s&quot;</span>, rpcRequest.toString()));
+                &#125; <span class="hljs-keyword">else</span> &#123;
+                    <span class="hljs-comment">//请求失败关闭当前这个连接</span>
+                    future1.channel().close();
+                    <span class="hljs-comment">//抛出异常，标记这个任务已经完成</span>
+                    resultFuture.completeExceptionally(future1.cause());
+                    logger.error(<span class="hljs-string">&quot;发送消息时有错误发生: &quot;</span>, future1.cause());
+                &#125;
+            &#125;);
+        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;
+            <span class="hljs-comment">//将请求移出未完成名单</span>
+            unprocessedRequests.remove(rpcRequest.getRequestId());
+            logger.error(e.getMessage(), e);
+            Thread.currentThread().interrupt();
+        &#125;
+        <span class="hljs-keyword">return</span> resultFuture;
+    &#125;
+&#125;
+</code></pre></div>
+
+<p>修改NettyClientHandler</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NettyClientHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">SimpleChannelInboundHandler</span>&lt;RpcResponse&gt; &#123;
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(NettyClientHandler.class);
+    
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> UnprocessedRequests unprocessedRequests;
+    
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">NettyClientHandler</span><span class="hljs-params">()</span> &#123;
+        <span class="hljs-built_in">this</span>.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
+    &#125;
+    
+    <span class="hljs-comment">/**</span>
+<span class="hljs-comment">     * 该方法是一个ChannelHandler处理RPC响应消息的回调方法。当通道接收到一个RpcResponse消息时</span>
+<span class="hljs-comment">     *</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> ctx 当前通道的上下文对象</span>
+<span class="hljs-comment">     * <span class="hljs-doctag">@param</span> msg 经过解码的Response</span>
+<span class="hljs-comment">     */</span>
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">channelRead0</span><span class="hljs-params">(ChannelHandlerContext ctx, RpcResponse msg)</span> <span class="hljs-keyword">throws</span> Exception &#123;
+        <span class="hljs-keyword">try</span>&#123;
+            logger.info(String.format(<span class="hljs-string">&quot;客户端接受到消息:%s&quot;</span>, msg));
+            <span class="hljs-comment">//将该请求移出未完成名单，并设置返回结果</span>
+            unprocessedRequests.complete(msg);
+        &#125;<span class="hljs-keyword">finally</span> &#123;
+            <span class="hljs-comment">// 释放消息引用计数器</span>
+            ReferenceCountUtil.release(msg);
+        &#125;
+    &#125;
+    
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">exceptionCaught</span><span class="hljs-params">(ChannelHandlerContext ctx, Throwable cause)</span> <span class="hljs-keyword">throws</span> Exception &#123;
+        logger.error(<span class="hljs-string">&quot;过程调用时有错误发送:&#123;&#125;&quot;</span>, cause.getMessage());
+        cause.printStackTrace();
+        ctx.close();
+    &#125;
+&#125;</code></pre></div>
+
+<p>UnprocessedRequests</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%89%8B%E5%86%99RPC/" class="category-chain-item">手写RPC</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/RPC/">#RPC</a>
+      
+        <a href="/tags/%E9%A1%B9%E7%9B%AE/">#项目</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>手写RPC框架——7、Netty客户端优化</div>
+      <div>https://ww-ccw.github.io/2023/04/22/rpcByHand/RpcByHand_7/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>chw</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2023年4月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2023/04/22/rpcByHand/RpcByHand_6/" title="手写RPC框架——6、关闭服务时从nacos注销服务">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">手写RPC框架——6、关闭服务时从nacos注销服务</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/04/21/rpcByHand/RpcByHand_5/" title="手写RPC框架——5、使用Nacos作为服务注册中心">
+                        <span class="hidden-mobile">手写RPC框架——5、使用Nacos作为服务注册中心</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
